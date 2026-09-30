@@ -6,7 +6,7 @@
 <title>Harmonium Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Actor&family=Cookie&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root{
     --teal-1:#12514a; --teal-2:#0f3d4c; --teal-3:#0c3144;
@@ -21,7 +21,7 @@
   }
   *,*::before,*::after{box-sizing:border-box;}
   html,body{margin:0;min-height:100%;}
-  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);
+  body{font-family:'Actor',system-ui,sans-serif;color:var(--ink);
     background:
       radial-gradient(90% 60% at 15% 0%, rgba(232,185,112,.16), transparent 60%),
       radial-gradient(80% 60% at 100% 100%, rgba(0,139,157,.14), transparent 55%),
@@ -54,8 +54,8 @@
 
   /* ---- intro (indigo) ---- */
   .intro-wrap{background:var(--indigo-bg);color:#fff;text-align:center;padding:4px clamp(22px,4vw,50px) 22px;}
-  .ititle{font-family:'Poppins',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,46px);line-height:1.06;margin:4px 0 16px;color:var(--gold);}
-  .greenline{color:var(--bright-green);font-weight:600;font-size:clamp(16px,2.1vw,19px);line-height:1.5;text-align:center;max-width:52ch;margin:0 auto;}
+  .ititle{font-family:'Fira Sans',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,46px);line-height:1.06;margin:4px 0 16px;color:var(--gold);}
+  .greenline{font-family:'Inter',sans-serif;color:var(--bright-green);font-weight:600;font-size:clamp(16px,2.1vw,19px);line-height:1.5;text-align:center;max-width:52ch;margin:0 auto;}
   .greenline .down{color:var(--bright-green);font-weight:700;font-size:1.3em;display:none;}
 
   /* ---- quiz (cream) ---- */
@@ -64,10 +64,10 @@
   .qarrow{position:absolute;top:-8px;width:72px;height:auto;z-index:3;pointer-events:none;}
   .qarrow.left{left:8px;transform:scaleX(-1);}
   .qarrow.right{right:8px;}
-  .q-count{display:inline-flex;align-items:center;gap:12px;font-family:'Poppins',sans-serif;font-weight:600;font-size:30px;letter-spacing:.01em;color:#b08f3a;margin-bottom:14px;}
+  .q-count{display:inline-flex;align-items:center;gap:12px;font-family:'Actor',sans-serif;font-weight:600;font-size:30px;letter-spacing:.01em;color:#b08f3a;margin-bottom:14px;}
   .q-count::before{content:"";width:36px;height:3px;background:#b08f3a;border-radius:2px;}
-  h1.q{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(24px,3.6vw,32px);line-height:1.12;margin:0 0 10px;color:var(--action);text-align:center;}
-  .sublabel{font-family:'Inter',sans-serif;font-weight:600;font-size:15px;margin:0 0 22px;}
+  h1.q{font-family:'Actor',sans-serif;font-weight:600;font-size:clamp(24px,3.6vw,32px);line-height:1.12;margin:0 0 10px;color:var(--action);text-align:center;}
+  .sublabel{font-family:'Actor',sans-serif;font-weight:600;font-size:15px;margin:0 0 22px;}
   .sublabel.one{color:var(--ink-soft);font-style:italic;}
   .sublabel.all{color:var(--action-deep);}
   .hint{font-size:15px;color:var(--ink-soft);margin:0 0 20px;font-style:italic;}
@@ -89,7 +89,7 @@
   .opt.multi.sel .mark::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;border:2px solid var(--gold);border-top:0;border-left:0;transform:rotate(40deg);}
 
   .row{display:flex;gap:12px;align-items:center;margin-top:26px;max-width:600px;margin-left:auto;margin-right:auto;}
-  .btn-primary{font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;
+  .btn-primary{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--gold-ink);background:linear-gradient(135deg,#F2C879 0%,#D99A45 100%);
     border:0;border-radius:3px;padding:19px 42px;margin-left:auto;position:relative;overflow:hidden;cursor:pointer;
     box-shadow:0 14px 40px rgba(232,185,112,.45),0 0 0 1px rgba(255,250,247,.2) inset;
@@ -98,7 +98,7 @@
   .btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 56px rgba(232,185,112,.6),0 0 0 1px rgba(255,250,247,.3) inset;}
   .btn-primary:hover::after{left:100%;}
   .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
-  .btn-ghost{font-family:'Inter',sans-serif;font-weight:500;background:transparent;border:0;color:var(--ink-soft);font-size:16px;padding:15px 6px;cursor:pointer;transition:color .15s;}
+  .btn-ghost{font-family:'Actor',sans-serif;font-weight:500;background:transparent;border:0;color:var(--ink-soft);font-size:16px;padding:15px 6px;cursor:pointer;transition:color .15s;}
   .btn-ghost:hover{color:var(--ink);}
 
   .kenny{display:flex;align-items:center;gap:13px;background:rgba(0,139,157,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 auto 22px;max-width:560px;text-align:left;}
@@ -106,8 +106,8 @@
   .kenny p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.4;}
   .kenny b{color:var(--ink);font-weight:600;}
   .field{margin:0 auto 15px;max-width:560px;text-align:left;}
-  .field label{display:block;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink-soft);margin-bottom:6px;}
-  .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;}
+  .field label{display:block;font-family:'Actor',sans-serif;font-size:13.5px;color:var(--ink-soft);margin-bottom:6px;}
+  .field input{width:100%;font-family:'Actor',sans-serif;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;}
   .field input:focus{outline:none;border-color:var(--action);box-shadow:0 0 0 3px rgba(0,139,157,.14);}
   .check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink-soft);margin:0 auto 11px;cursor:pointer;line-height:1.4;max-width:560px;text-align:left;}
   .check input{margin-top:2px;accent-color:var(--action);width:17px;height:17px;flex:none;}
@@ -117,15 +117,16 @@
 
   /* bullets under the quiz (mobile only) */
   .intro-foot{background:var(--cream);text-align:center;padding:4px clamp(22px,4vw,50px) 30px;}
-  .mc-line{font-family:'Inter',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(15px,1.9vw,17px);line-height:1.5;max-width:56ch;margin:16px auto 0;}
-  .kenny-quote{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:700;color:#b08f3a;font-size:clamp(18px,2.3vw,22px);line-height:1.4;max-width:46ch;margin:28px auto 0;}
+  .mc-line{font-family:'Inter',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(15px,1.9vw,17px);line-height:1.5;max-width:60ch;margin:16px auto 0;}
+  .foot-lead{font-family:'Actor',sans-serif;color:var(--ink-soft);font-size:clamp(15px,1.9vw,17px);line-height:1.5;max-width:60ch;margin:16px auto 0;}
+  .kenny-quote{font-family:'Cookie',cursive;font-weight:400;color:#b08f3a;font-size:clamp(24px,3.2vw,32px);line-height:1.15;max-width:46ch;margin:28px auto 0;}
 
   /* social proof */
   .proof{position:relative;z-index:1;width:100%;max-width:960px;margin:26px auto 0;text-align:center;color:rgba(255,252,246,.9);}
   .stats{display:flex;flex-wrap:wrap;justify-content:space-evenly;align-items:center;gap:12px 30px;margin-bottom:26px;}
   .stats .item{display:flex;flex-direction:column;line-height:1.1;}
-  .stats .big{font-family:'Cormorant Garamond',serif;font-size:40px;color:var(--gold);font-weight:700;}
-  .stats .lbl{font-family:'Inter',sans-serif;font-size:13px;letter-spacing:.03em;color:rgba(255,252,246,.8);}
+  .stats .big{font-family:'Actor',sans-serif;font-size:40px;color:var(--gold);font-weight:700;}
+  .stats .lbl{font-family:'Actor',sans-serif;font-size:13px;letter-spacing:.03em;color:rgba(255,252,246,.8);}
   .stars{color:var(--gold);letter-spacing:2px;font-size:28px;}
   .reviews{display:flex;flex-direction:column;align-items:center;gap:16px;}
   .rev{width:100%;max-width:620px;border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;height:auto;}
@@ -157,7 +158,8 @@
     .btn-primary{padding:14px 30px;}
     .row{margin-top:22px;}
     .intro-foot{margin-top:14px;padding:0 16px 26px;}
-    .kenny-quote{font-size:clamp(20px,5.5vw,24px);margin-top:24px;}
+    .mc-line{font-size:clamp(16px,4.5vw,18px);}
+    .kenny-quote{font-size:clamp(28px,7vw,34px);margin-top:24px;}
     .proof{max-width:none;padding:0 6px;margin-top:16px;}
     .stats{flex-direction:column;flex-wrap:nowrap;gap:16px;margin-bottom:24px;}
     .stats .big{font-size:34px;} .stats .lbl{font-size:13px;} .stars{font-size:26px;}
@@ -238,8 +240,8 @@ const CONFIG = {
 /* ============================================================ QUIZ */
 const QUESTIONS = [
   { id:"place", q:"Where do you play, or dream of playing?",
-    opts:[["home","Just for myself at home"],["kirtan","Singing along at kirtan or satsang"],
-          ["lead","I accompany or lead kirtan"],["teach","I teach or hold space (yoga, sound healing)"]]},
+    opts:[["home","I play harmonium for myself at home"],["kirtan","I play harmonium while singing at kirtan or satsang"],
+          ["lead","I accompany or lead kirtan on harmonium"],["teach","I teach or hold space with harmonium (yoga, sound healing)"]]},
   { id:"level", q:"How long have you been playing harmonium?",
     opts:[["none","Haven't started yet"],["under1","Less than a year"],["1to5","1-5 years"],["over5","More than 5 years"]]},
   { id:"learned", q:"How have you learned so far?", multi:true,
@@ -313,7 +315,7 @@ function renderQuestion(){
     : "";
   const introFoot = idx===0
     ? `<div class="intro-foot">
-         <p class="mc-line">👉 Get instant access to the free Harmonium Masterclass: "The 7 Principles of Harmonium Playing, 33min".</p>
+         <p class="mc-line">👉 By completing this quiz you will get clarity about your player type, your best next step, and receive access to the free Harmonium masterclass: "The 7 Principles of Harmonium Playing, 33min".</p>
          <p class="kenny-quote">"You don't need special talent, you need the right path and the right guidance."</p>
        </div>`
     : "";
