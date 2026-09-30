@@ -67,12 +67,12 @@
   /* ---- quiz (cream) ---- */
   .quiz{background:var(--cream);text-align:center;padding:40px clamp(22px,4vw,50px) 10px;position:relative;}
   .quiz::before{content:"";position:absolute;top:-1px;left:0;width:100%;height:34px;background:var(--indigo-bg);clip-path:polygon(0 0,100% 0,0 100%);}
-  .qarrow{position:absolute;top:-30px;width:120px;height:auto;z-index:3;pointer-events:none;}
-  .qarrow.left{left:14px;transform:scaleX(-1);}
-  .qarrow.right{right:14px;}
+  .qarrow{position:absolute;top:-8px;width:72px;height:auto;z-index:3;pointer-events:none;}
+  .qarrow.left{left:8px;transform:scaleX(-1);}
+  .qarrow.right{right:8px;}
   .q-count{display:inline-flex;align-items:center;gap:12px;font-family:'Poppins',sans-serif;font-weight:600;font-size:30px;letter-spacing:.01em;color:#b08f3a;margin-bottom:14px;}
   .q-count::before{content:"";width:36px;height:3px;background:#b08f3a;border-radius:2px;}
-  h1.q{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(31px,6.8vw,48px);line-height:1.08;margin:0 0 10px;color:var(--action);text-align:center;}
+  h1.q{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(24px,3.6vw,32px);line-height:1.12;margin:0 0 10px;color:var(--action);text-align:center;}
   .sublabel{font-family:'Inter',sans-serif;font-weight:600;font-size:15px;margin:0 0 22px;}
   .sublabel.one{color:var(--ink-soft);font-style:italic;}
   .sublabel.all{color:var(--action-deep);}
@@ -155,13 +155,14 @@
     .card{border-radius:3px;}
     .logo{display:none;}
     .topband{padding:8px 16px 8px;}
-    .topimg{width:38%;max-width:170px;margin-bottom:8px;}
+    .topimg{width:62%;max-width:250px;margin-bottom:10px;}
     .intro-wrap{padding:4px 16px 18px;}
-    .ititle{font-size:clamp(34px,10vw,46px);margin:2px 0 12px;}
+    .ititle{font-size:clamp(23px,7vw,32px);margin:2px 0 12px;}
     .green-cue{display:block;}
     .bullets-desktop{display:none;}
-    .quiz{padding:22px 16px 8px;}
+    .quiz{padding:34px 16px 8px;}
     .q-count{font-size:27px;}
+    .arrow{display:none;}
     .opt{padding:13px 16px;font-size:18px;}
     .btn-primary{padding:14px 30px;}
     .row{margin-top:22px;}
@@ -324,14 +325,14 @@ function renderQuestion(){
            <li>You don't need special talent, you need the <b>right path and guidance</b>.</li>
            <li>Answer the questions below and receive your <b>personal player type</b> and your <b>best next step</b>.</li>
            <li>Get instant access to the <b>free Harmonium Masterclass</b>: "The 7 Principles of Harmonium Playing, 33min".</li>
-         </ul><div class="uline"></div></div>
+         </ul></div>
        </div>`
     : "";
   const introBulletsMobile = idx===0
     ? `<div class="bullets-mobile"><ul>
          <li>You don't need special talent, you need the <b>right path and guidance</b>.</li>
          <li>Get instant access to the <b>free Harmonium Masterclass</b>: "The 7 Principles of Harmonium Playing, 33min".</li>
-       </ul><div class="uline"></div></div>`
+       </ul></div>`
     : "";
   wrap.innerHTML=
     `${intro}
