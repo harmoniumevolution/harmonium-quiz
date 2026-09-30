@@ -266,12 +266,13 @@ const QUESTIONS = [
    ROUTING  — turns the answers into a route + qualification
    ============================================================ */
 function computeRoute(a){
-  const invest = a.invest, harm = a.harmonium, level = a.level, time = a.time;
-  const hasHarmonium = (harm === "yes" || harm === "onway");
-  const wantsToBuy   = (invest === "complete" || invest === "guidance");
+  const invest = a.invest, level = a.level;
+  const wantsToBuy = (invest === "complete" || invest === "guidance");
 
-  // Not qualified -> Route D (free lesson + email list, no call, no QualifiedLead)
-  if (!wantsToBuy || !hasHarmonium){
+  // Not qualified -> Route D (free lesson + email list, no call, no QualifiedLead).
+  // NOTE: the harmonium question (a.harmonium) is captured but deliberately NOT used
+  // to qualify — people without a harmonium still buy the course and want advice.
+  if (!wantsToBuy){
     return { route:"D", qualified:false, advanced:false };
   }
   // Qualified from here on
