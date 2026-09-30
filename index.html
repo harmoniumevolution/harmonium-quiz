@@ -3,402 +3,332 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Harmonium Check</title>
+<title>Harmonium Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  /* ---------- Harmonium Evolution brand tokens ---------- */
   :root{
-    --navy:#0f3650;        /* base background */
-    --navy-deep:#0a2740;   /* panels */
-    --indigo:#271354;      /* gradient partner */
-    --rose:#871449;        /* burgundy / rose accent */
-    --gold:#E8B970;        /* primary accent */
-    --gold-soft:#c9a84c;
-    --cream:#FFFAF7;       /* text */
-    --cream-dim:rgba(255,250,247,.68);
-    --cream-faint:rgba(255,250,247,.42);
-    --line:rgba(232,185,112,.28);
-    --radius:16px;
-    box-sizing:border-box;
-    padding-top:env(safe-area-inset-top,0px);
-    padding-bottom:env(safe-area-inset-bottom,0px);
+    --teal-1:#12514a; --teal-2:#0f3d4c; --teal-3:#0c3144;
+    --gold:#E8B970; --gold-deep:#c9a84c;
+    --action:#008B9D; --action-deep:#00A6BB;
+    --cream:#FBF6EC; --cream-2:#FFFCF6;
+    --indigo:#0B0054; --gold-ink:#1A0B3D;
+    --ink:#123244; --ink-soft:#3c5c6e; --ink-faint:rgba(18,50,68,.5);
+    --line:rgba(18,50,68,.14);
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
   *,*::before,*::after{box-sizing:border-box;}
-  html,body{margin:0;height:100%;}
-  body{
-    font-family:'Jost',system-ui,sans-serif;
-    color:var(--cream);
+  html,body{margin:0;min-height:100%;}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);
     background:
-      radial-gradient(120% 90% at 50% -10%, rgba(135,20,73,.35), transparent 60%),
-      radial-gradient(90% 70% at 85% 110%, rgba(39,19,84,.55), transparent 55%),
-      var(--navy);
-    background-attachment:fixed;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{
-    min-height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:clamp(20px,5vw,56px) 20px;
-  }
-  /* ---------- Card with dual gradient border (brand signature) ---------- */
-  .card{
-    width:100%;
-    max-width:640px;
-    position:relative;
-    border-radius:calc(var(--radius) + 4px);
-    padding:1px;                 /* space for gradient border */
-    background:linear-gradient(150deg, var(--gold), var(--rose) 60%, rgba(232,185,112,.25));
-    box-shadow:0 30px 80px -30px rgba(0,0,0,.7);
-  }
-  .card-inner{
-    background:linear-gradient(180deg, var(--navy-deep), #0b2c44);
-    border-radius:var(--radius);
-    padding:clamp(24px,5vw,44px);
-  }
-  /* ---------- Header / progress ---------- */
-  .brand{
-    font-family:'Pinyon Script',cursive;
-    font-size:clamp(22px,4vw,28px);
-    color:var(--gold);
-    text-align:center;
-    margin:0 0 22px;
-    font-weight:400;
-  }
-  .dots{display:flex;gap:7px;justify-content:center;margin:0 0 26px;flex-wrap:wrap;}
-  .dot{width:8px;height:8px;border-radius:50%;background:rgba(232,185,112,.22);transition:all .4s ease;}
-  .dot.done{background:var(--gold-soft);}
-  .dot.active{background:var(--gold);box-shadow:0 0 10px 1px rgba(232,185,112,.8);transform:scale(1.25);}
+      radial-gradient(90% 60% at 15% 0%, rgba(232,185,112,.16), transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, rgba(0,139,157,.14), transparent 55%),
+      linear-gradient(160deg, var(--teal-1) 0%, var(--teal-2) 52%, var(--teal-3) 100%);
+    background-attachment:fixed;line-height:1.6;-webkit-font-smoothing:antialiased;}
 
-  /* ---------- Question ---------- */
+  .decor{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+  .star{position:absolute;fill:var(--gold);opacity:.55;}
+  .hline{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(232,185,112,.5),transparent);opacity:.5;}
+
+  .wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px) 18px;}
+
+  .card{width:100%;max-width:600px;background:linear-gradient(180deg,var(--cream-2),var(--cream));
+    border:1px solid rgba(232,185,112,.5);border-radius:22px;
+    box-shadow:0 30px 70px -28px rgba(0,0,0,.55);
+    padding:clamp(22px,5vw,40px) clamp(20px,5vw,44px) clamp(26px,5vw,40px);}
+
+  .topimg{width:76px;height:76px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;
+    border:2px solid rgba(232,185,112,.7);box-shadow:0 6px 16px -6px rgba(18,50,68,.4);}
+  .logo{display:block;height:34px;margin:0 auto 20px;width:auto;}
+  .dots{display:flex;gap:7px;justify-content:center;margin:0 0 24px;flex-wrap:wrap;}
+  .dot{width:7px;height:7px;border-radius:50%;background:rgba(18,50,68,.15);transition:all .4s ease;}
+  .dot.done{background:var(--gold-deep);}
+  .dot.active{background:var(--action);box-shadow:0 0 9px 1px rgba(0,139,157,.85);transform:scale(1.3);}
+
+  /* intro (screen 1) */
+  .intro{margin:0 0 38px;}
+  .intro h2{font-family:'Poppins',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,44px);line-height:1.08;margin:0 0 24px;color:var(--indigo);text-align:center;}
+  .intro ul{list-style:none;margin:0 auto;padding:0;text-align:left;max-width:44ch;}
+  .intro li{position:relative;padding-left:28px;font-size:clamp(16px,2.5vw,18.5px);color:var(--ink-soft);line-height:1.5;margin-bottom:12px;}
+  .intro li::before{content:"";position:absolute;left:2px;top:.5em;width:9px;height:9px;border-radius:50%;background:var(--gold);}
+  .intro li b{color:var(--indigo);font-weight:600;}
+
   .step{animation:rise .45s cubic-bezier(.2,.7,.2,1);}
-  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
-  .q-count{font-size:13px;letter-spacing:.04em;color:var(--cream-faint);margin-bottom:10px;}
-  h1.q{
-    font-family:'Cormorant Garamond',serif;
-    font-weight:500;
-    font-size:clamp(26px,4.6vw,36px);
-    line-height:1.15;
-    margin:0 0 24px;
-    letter-spacing:.005em;
-  }
-  .hint{font-size:14px;color:var(--cream-dim);margin:-14px 0 22px;}
+  @keyframes rise{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:none;}}
 
-  /* ---------- Options ---------- */
-  .options{display:flex;flex-direction:column;gap:11px;}
-  .opt{
-    display:flex;align-items:center;gap:14px;
-    width:100%;text-align:left;
-    font-family:'Jost',sans-serif;font-size:16px;color:var(--cream);
-    background:rgba(255,250,247,.03);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:16px 18px;
-    cursor:pointer;
-    transition:border-color .2s, background .2s, transform .1s;
-  }
-  .opt:hover{border-color:var(--gold);background:rgba(232,185,112,.06);}
-  .opt:active{transform:scale(.99);}
+  .q-count{display:inline-flex;align-items:center;gap:12px;font-family:'Poppins',sans-serif;font-weight:600;font-size:25px;letter-spacing:.01em;
+    color:#b08f3a;background:none;padding:0;margin-bottom:14px;box-shadow:none;}
+  .q-count::before{content:"";width:32px;height:3px;background:#b08f3a;border-radius:2px;}
+
+  h1.q{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(31px,6.8vw,48px);line-height:1.08;margin:0 0 10px;color:var(--action);}
+
+  .sublabel{font-family:'Inter',sans-serif;font-weight:600;font-size:15px;margin:0 0 22px;}
+  .sublabel.one{color:var(--ink-soft);font-style:italic;}
+  .sublabel.all{color:var(--action-deep);}
+  .hint{font-size:15px;color:var(--ink-soft);margin:0 0 20px;font-style:italic;}
+
+  /* replies */
+  .options{display:flex;flex-direction:column;gap:14px;}
+  .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+    font-family:'Inter',sans-serif;font-size:19px;color:#fff;
+    background:var(--action);border:1.5px solid var(--action);border-radius:14px;padding:18px 20px;cursor:pointer;
+    box-shadow:0 8px 20px -14px rgba(0,139,157,.9);
+    transition:background .16s,border-color .16s,box-shadow .16s,transform .1s;}
+  .opt:hover{background:var(--action-deep);border-color:var(--action-deep);box-shadow:0 10px 22px -12px rgba(0,139,157,.95);transform:translateY(-1px);}
+  .opt:active{transform:scale(.995);}
   .opt:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
-  .opt .mark{
-    flex:none;width:20px;height:20px;border-radius:50%;
-    border:1.5px solid var(--gold-soft);position:relative;transition:all .2s;
-  }
-  .opt.sel{border-color:var(--gold);background:rgba(232,185,112,.10);}
-  .opt.sel .mark{background:var(--gold);border-color:var(--gold);}
-  .opt.sel .mark::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--navy-deep);}
+  .opt .mark{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #fff;position:relative;transition:all .16s;background:#fff;}
   .opt.multi .mark{border-radius:6px;}
-  .opt.multi.sel .mark::after{border-radius:2px;}
+  .opt.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 12px 26px -12px rgba(0,139,157,1);font-weight:500;}
+  .opt.sel .mark{background:#fff;border-color:#fff;}
+  .opt:not(.multi).sel .mark::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--gold);}
+  .opt.multi.sel .mark::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;border:2px solid var(--gold);border-top:0;border-left:0;transform:rotate(40deg);}
 
-  /* ---------- Buttons ---------- */
-  .row{display:flex;gap:12px;align-items:center;margin-top:26px;}
-  .btn{
-    font-family:'Jost',sans-serif;font-weight:500;font-size:16px;
-    border:none;border-radius:999px;padding:15px 30px;cursor:pointer;
-    transition:transform .12s, box-shadow .2s, opacity .2s;
-  }
-  .btn-primary{
-    color:var(--navy-deep);
-    background:linear-gradient(100deg, var(--gold), #e8a06e 55%, var(--rose));
-    box-shadow:0 10px 26px -10px rgba(232,185,112,.7);
-    margin-left:auto;
-  }
-  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 14px 30px -10px rgba(232,185,112,.85);}
+  /* buttons */
+  .row{display:flex;gap:12px;align-items:center;margin-top:28px;}
+  /* the homepage golden button, with the shine sweep */
+  .btn-primary{font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--gold-ink);background:linear-gradient(135deg,#F2C879 0%,#D99A45 100%);
+    border:0;border-radius:3px;padding:19px 42px;margin-left:auto;position:relative;overflow:hidden;cursor:pointer;
+    box-shadow:0 14px 40px rgba(232,185,112,.45),0 0 0 1px rgba(255,250,247,.2) inset;
+    transition:transform .15s ease,box-shadow .15s ease;}
+  .btn-primary::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transition:left .7s ease;}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 56px rgba(232,185,112,.6),0 0 0 1px rgba(255,250,247,.3) inset;}
+  .btn-primary:hover::after{left:100%;}
   .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
-  .btn-ghost{background:transparent;color:var(--cream-dim);padding:15px 8px;}
-  .btn-ghost:hover{color:var(--cream);}
+  .btn-ghost{font-family:'Inter',sans-serif;font-weight:500;background:transparent;border:0;color:var(--ink-soft);font-size:16px;padding:15px 6px;cursor:pointer;transition:color .15s;}
+  .btn-ghost:hover{color:var(--ink);}
 
-  /* ---------- Email step ---------- */
-  .field{margin:0 0 16px;}
-  .field label{display:block;font-size:14px;color:var(--cream-dim);margin-bottom:7px;}
-  .field input[type=text],.field input[type=email],.field input[type=tel]{
-    width:100%;font-family:'Jost',sans-serif;font-size:16px;color:var(--cream);
-    background:rgba(255,250,247,.04);border:1px solid var(--line);border-radius:12px;
-    padding:14px 16px;
-  }
-  .field input:focus{outline:none;border-color:var(--gold);background:rgba(232,185,112,.06);}
-  .check{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--cream-dim);margin:0 0 12px;cursor:pointer;}
-  .check input{margin-top:3px;accent-color:var(--gold);width:17px;height:17px;flex:none;}
-  .fine{font-size:12.5px;color:var(--cream-faint);margin-top:6px;}
-  .fine a{color:var(--gold-soft);}
-  .err{color:#ffb4a2;font-size:14px;margin:10px 0 0;min-height:1em;}
-  .loading{text-align:center;color:var(--cream-dim);padding:20px 0;}
+  .kenny{display:flex;align-items:center;gap:13px;background:rgba(0,139,157,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 22px;}
+  .kenny img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(232,185,112,.7);}
+  .kenny p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.4;}
+  .kenny b{color:var(--ink);font-weight:600;}
+  .field{margin:0 0 15px;}
+  .field label{display:block;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink-soft);margin-bottom:6px;}
+  .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;}
+  .field input:focus{outline:none;border-color:var(--action);box-shadow:0 0 0 3px rgba(0,139,157,.14);}
+  .check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink-soft);margin:0 0 11px;cursor:pointer;line-height:1.4;}
+  .check input{margin-top:2px;accent-color:var(--action);width:17px;height:17px;flex:none;}
+  .fine{font-size:12px;color:var(--ink-faint);margin-top:8px;}
+  .fine a{color:var(--action-deep);}
+  .err{color:#b23a2e;font-size:14px;margin:8px 0 0;min-height:1em;}
 
-  @media (prefers-reduced-motion:reduce){
-    .step{animation:none;} .dot{transition:none;} .btn-primary:hover{transform:none;}
-  }
+  /* social proof */
+  .proof{position:relative;z-index:1;width:100%;max-width:600px;margin:24px auto 0;text-align:center;color:rgba(255,252,246,.9);}
+  .stats{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 26px;margin-bottom:18px;}
+  .stats .item{display:flex;flex-direction:column;line-height:1.1;}
+  .stats .big{font-family:'Poppins',sans-serif;font-size:30px;color:var(--gold);font-weight:800;}
+  .stats .lbl{font-family:'Inter',sans-serif;font-size:12.5px;letter-spacing:.03em;color:rgba(255,252,246,.78);}
+  .stars{color:var(--gold);letter-spacing:2px;font-size:21px;}
+  .reviews{display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .rev{border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;max-width:100%;height:auto;}
+  .rev.feat{max-width:470px;width:100%;}
+  .revrow{display:flex;gap:12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;}
+  .revrow .rev{max-width:230px;}
+
+  .sitefooter{position:relative;z-index:1;width:100%;background:var(--cream);margin-top:34px;padding:34px 20px 30px;text-align:center;}
+  .sitefooter .flogo{height:30px;width:auto;margin:0 auto 16px;display:block;}
+  .flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:18px;font-family:'Inter',sans-serif;font-size:14px;}
+  .flinks a{color:var(--ink-soft);text-decoration:none;}
+  .flinks a:hover{color:var(--action-deep);}
+  .legal{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-faint);line-height:1.6;max-width:640px;margin:0 auto;}
+
+  @media (prefers-reduced-motion:reduce){.step{animation:none;}.dot{transition:none;}.btn-primary:hover,.opt:hover{transform:none;}}
 </style>
 </head>
 <body>
+<div class="decor" id="decor" aria-hidden="true"></div>
+
 <div class="wrap">
   <div class="card">
-    <div class="card-inner">
-      <p class="brand">Harmonium Evolution</p>
-      <div class="dots" id="dots" aria-hidden="true"></div>
-      <div id="stage" aria-live="polite"></div>
+    <img class="topimg" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba323b4838.22031802_e8fe63-d4b-4a6a-e53e-e182e270184f_hand_close_correct-01.jpg" alt="Playing the harmonium" />
+    <img class="logo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <div id="stage" aria-live="polite"></div>
+  </div>
+
+  <div class="proof">
+    <div class="stats">
+      <div class="item"><span class="stars">★★★★★</span><span class="lbl">4.9 RATING</span></div>
+      <div class="item"><span class="big">850+</span><span class="lbl">STUDENTS WORLDWIDE</span></div>
+      <div class="item"><span class="big">18</span><span class="lbl">YEARS OF TEACHING</span></div>
+    </div>
+    <div class="reviews">
+      <img class="rev feat" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
+      <div class="revrow">
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/thumb_150/6ab62fe8f0acc9.85756707_des.png" alt="Student review" />
+      </div>
     </div>
   </div>
 </div>
 
+<footer class="sitefooter">
+  <img class="flogo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+  <nav class="flinks">
+    <a href="https://www.harmoniumevolution.com/about-us" target="_blank" rel="noopener">About</a>
+    <a href="https://www.harmoniumevolution.com/blog" target="_blank" rel="noopener">Resources</a>
+    <a href="https://www.harmoniumevolution.com/contact-us" target="_blank" rel="noopener">Contact</a>
+    <a href="https://www.harmoniumevolution.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>
+    <a href="https://www.harmoniumevolution.com/terms" target="_blank" rel="noopener">Terms of Service</a>
+    <a href="https://www.harmoniumevolution.com/cookies-policy" target="_blank" rel="noopener">Cookies Policy</a>
+    <a href="https://www.harmoniumevolution.com/disclaimer" target="_blank" rel="noopener">Disclaimer</a>
+  </nav>
+  <p class="legal">
+    © 2026 The Harmonium Evolution, Kenny Clarys. All rights reserved.<br>
+    The Harmonium Evolution is a trade name of Make Creations C.V.<br>
+    This website is not part of Facebook or Facebook Inc., and is NOT endorsed by Facebook in any way. FACEBOOK is a trademark of FACEBOOK Inc.<br>
+    This website is not part of Google or Google LLC, and is NOT endorsed by Google in any way. GOOGLE is a trademark of GOOGLE LLC.
+  </p>
+</footer>
+
 <script>
-/* ============================================================
-   CONFIG  — change these before / after deploy
-   ============================================================ */
+/* ============================================================ CONFIG */
 const CONFIG = {
-  SUPABASE_URL:  "https://amrvuxvlsebrznwcqhij.supabase.co",
+  SUPABASE_URL: "https://amrvuxvlsebrznwcqhij.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtcnZ1eHZsc2Vicnpud2NxaGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTAyMTMsImV4cCI6MjA5MTk4NjIxM30.yizmM8VnZ-wujPHNG6uIw5KrMMkKahS6lqv8rscsPHU",
-  SUPABASE_TABLE: "quiz_leads",     // matches the SQL Kenny runs in Supabase
-  // TODO: replace with the real Systeme result-page URLs once they exist (build step 17)
+  SUPABASE_TABLE: "quiz_leads",
   RESULT_URLS: {
-    A: "https://harmoniumevolution.com/start-here",
-    B: "https://harmoniumevolution.com/your-path",
-    C: "https://harmoniumevolution.com/personal-guidance",
-    D: "https://harmoniumevolution.com/free-lesson"
+    A:"https://harmoniumevolution.com/start-here",
+    B:"https://harmoniumevolution.com/your-path",
+    C:"https://harmoniumevolution.com/personal-guidance",
+    D:"https://harmoniumevolution.com/free-lesson"
   },
-  META_PIXEL_ID: ""   // TODO: add on build day 5 (tracking)
+  META_PIXEL_ID: ""
 };
 
-/* ============================================================
-   QUIZ DEFINITION  (the 10 questions we locked)
-   ============================================================ */
+/* ============================================================ QUIZ */
 const QUESTIONS = [
-  { id:"place", q:"Where do you play — or dream of playing?",
-    opts:[
-      ["home","Just for myself at home"],
-      ["kirtan","Singing along at kirtan or satsang"],
-      ["lead","I accompany or lead kirtan"],
-      ["teach","I teach or hold space (yoga, sound healing)"]
-    ]},
+  { id:"place", q:"Where do you play, or dream of playing?",
+    opts:[["home","Just for myself at home"],["kirtan","Singing along at kirtan or satsang"],
+          ["lead","I accompany or lead kirtan"],["teach","I teach or hold space (yoga, sound healing)"]]},
   { id:"level", q:"How long have you been playing harmonium?",
-    opts:[
-      ["none","Haven't started yet"],
-      ["under1","Less than a year"],
-      ["1to5","1–5 years"],
-      ["over5","More than 5 years"]
-    ]},
-  { id:"learned", q:"How have you learned so far?",
-    opts:[
-      ["notyet","Not yet"],
-      ["youtube","YouTube videos"],
-      ["copying","Copying songs by ear"],
-      ["lessons","A few lessons"],
-      ["teacher","A teacher, for a while"]
-    ]},
+    opts:[["none","Haven't started yet"],["under1","Less than a year"],["1to5","1-5 years"],["over5","More than 5 years"]]},
+  { id:"learned", q:"How have you learned so far?", multi:true,
+    opts:[["notyet","Not yet"],["youtube","YouTube videos"],["copying","Copying songs by ear"],["lessons","A few lessons"],["teacher","A teacher, for a while"]]},
   { id:"sixmonths", q:"Where would you love to be six months from now?",
-    opts:[
-      ["firstsongs","Playing my first songs"],
-      ["confident","Playing confidently with others"],
-      ["leading","Leading kirtan"],
-      ["teaching","Teaching others"],
-      ["improv","Improvising freely"]
-    ]},
-  { id:"learnnext", q:"What do you most want to learn next?",
-    opts:[
-      ["basics","The basics, the right way"],
-      ["chords","Chords & theory that finally click"],
-      ["technique","Smoother technique"],
-      ["playsing","Playing and singing together"],
-      ["melody","Melody & improvisation"]
-    ]},
-  { id:"blocker", q:"What's holding you back most right now?",
-    opts:[
-      ["start","I don't know where to start"],
-      ["stuck","I learned from YouTube but I'm stuck"],
-      ["flat","My playing sounds flat — chords and rhythm don't flow"],
-      ["freedom","I want to play more freely: melody, improvisation, leading"]
-    ]},
-  { id:"musiccheck", q:"Quick music check — which notes make a C minor chord?",
-    hint:"No wrong door here — it just helps me meet you where you are.",
-    opts:[
-      ["correct","C – E♭ – G"],
-      ["cmajor","C – E – G"],
-      ["byear","I can follow it in a song, but not the theory"],
-      ["notsure","Not sure — but I'd love to finally understand chords"]
-    ]},
+    opts:[["firstsongs","Playing my first songs"],["confident","Playing confidently with others"],["leading","Leading kirtan"],["teaching","Teaching others"],["improv","Improvising freely"]]},
+  { id:"learnnext", q:"What do you most want to learn next?", multi:true,
+    opts:[["basics","The basics, the right way"],["chords","Chords & theory that finally click"],["technique","Smoother technique"],["playsing","Playing and singing together"],["melody","Melody & improvisation"]]},
+  { id:"blocker", q:"What's holding you back most right now?", multi:true,
+    opts:[["start","I don't know where to start"],["stuck","I learned from YouTube but I'm stuck"],["flat","My playing sounds flat, chords and rhythm don't flow"],["freedom","I want to play more freely: melody, improvisation, leading"]]},
+  { id:"musiccheck", q:"Quick music check. Which notes make a C minor chord?",
+    hint:"No wrong door here, it just helps me meet you where you are.",
+    opts:[["correct","C, E♭, G"],["cmajor","C, E, G"],["byear","I can follow it in a song, but not the theory"],["notsure","Not sure, but I'd love to finally understand chords"]]},
   { id:"harmonium", q:"Do you have a harmonium to practice on?",
-    opts:[
-      ["yes","Yes"],
-      ["onway","It's on its way"],
-      ["notyet","Not yet"]
-    ]},
+    opts:[["yes","Yes"],["onway","It's on its way"],["notyet","Not yet"]]},
   { id:"time", q:"How much time can you realistically practice each week?",
-    opts:[
-      ["under1","Under 1 hour"],
-      ["1to3","1–3 hours"],
-      ["3to5","3–5 hours"],
-      ["5plus","5+ hours"]
-    ]},
+    opts:[["under1","Under 1 hour"],["1to3","1-3 hours"],["3to5","3-5 hours"],["5plus","5+ hours"]]},
   { id:"invest", q:"Learning this properly is an investment in yourself. What feels true right now?",
-    opts:[
-      ["free","I'm just looking for free tips for now"],
-      ["affordable","I'd like an affordable way to start"],
-      ["complete","I'm ready to invest in a complete course to finally learn this the right way"],
-      ["guidance","I want personal guidance from Kenny, and I'm ready to invest in that"]
-    ]}
+    opts:[["free","I'm just looking for free tips for now"],["affordable","I'd like an affordable way to start"],
+          ["complete","I'm ready to invest in a complete course to finally learn this the right way"],
+          ["guidance","I want personal guidance from Kenny, and I'm ready to invest in that"]]}
 ];
 
-/* ============================================================
-   ROUTING  — turns the answers into a route + qualification
-   ============================================================ */
+/* ============================================================ ROUTING (harmonium not used to qualify) */
 function computeRoute(a){
-  const invest = a.invest, level = a.level;
-  const wantsToBuy = (invest === "complete" || invest === "guidance");
-
-  // Not qualified -> Route D (free lesson + email list, no call, no QualifiedLead).
-  // NOTE: the harmonium question (a.harmonium) is captured but deliberately NOT used
-  // to qualify — people without a harmonium still buy the course and want advice.
-  if (!wantsToBuy){
-    return { route:"D", qualified:false, advanced:false };
-  }
-  // Qualified from here on
-  if (invest === "guidance"){
-    return { route:"C", qualified:true, advanced:false };
-  }
-  // invest === "complete"
-  const advanced =
-    level === "over5" ||
-    a.place === "lead" || a.place === "teach" ||
-    a.sixmonths === "leading" || a.sixmonths === "teaching" || a.sixmonths === "improv";
-
-  const beginner = (level === "none" || level === "under1") && a.musiccheck !== "correct";
+  const invest=a.invest, level=a.level;
+  const wantsToBuy=(invest==="complete"||invest==="guidance");
+  if(!wantsToBuy){return {route:"D",qualified:false,advanced:false};}
+  if(invest==="guidance"){return {route:"C",qualified:true,advanced:false};}
+  const advanced = level==="over5" || a.place==="lead" || a.place==="teach" || a.sixmonths==="leading" || a.sixmonths==="teaching" || a.sixmonths==="improv";
+  const beginner = (level==="none"||level==="under1") && a.musiccheck!=="correct";
   const route = beginner ? "A" : "B";
-  return { route, qualified:true, advanced: (route === "B" && advanced) };
+  return {route, qualified:true, advanced:(route==="B" && advanced)};
 }
 
-/* ============================================================
-   STATE + helpers
-   ============================================================ */
-const answers = {};
-let idx = 0;
-let started = false;
-const stage = document.getElementById("stage");
-const dotsEl = document.getElementById("dots");
-const TOTAL = QUESTIONS.length;
+/* ============================================================ STATE */
+const answers={}; let idx=0; let started=false;
+const stage=document.getElementById("stage"), dotsEl=document.getElementById("dots");
+const TOTAL=QUESTIONS.length;
+function uuid(){return (crypto.randomUUID&&crypto.randomUUID())||"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==="x"?r:(r&0x3|0x8)).toString(16);});}
+const eventId=uuid();
+function getCookie(n){const m=document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;]+)");return m?m.pop():"";}
+function getUTM(){const p=new URLSearchParams(location.search);return{utm_source:p.get("utm_source")||"",utm_campaign:p.get("utm_campaign")||"",utm_content:p.get("utm_content")||"",utm_medium:p.get("utm_medium")||""};}
+function fire(ev,ex){if(window.fbq)window.fbq("trackCustom",ev,Object.assign({eventID:eventId},ex||{}));}
+function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
+function renderDots(){dotsEl.innerHTML="";for(let i=0;i<TOTAL;i++){const d=document.createElement("span");d.className="dot"+(i<idx?" done":"")+(i===idx?" active":"");dotsEl.appendChild(d);}}
 
-function uuid(){
-  return (crypto.randomUUID && crypto.randomUUID()) ||
-    "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{
-      const r=Math.random()*16|0; return (c==="x"?r:(r&0x3|0x8)).toString(16);});
-}
-const eventId = uuid();
+(function decor(){
+  const el=document.getElementById("decor");
+  [[6,10,16],[88,14,22],[80,80,14],[10,84,18],[50,6,12],[93,50,12],[4,45,12]].forEach(([x,y,s])=>{
+    el.insertAdjacentHTML("beforeend",`<svg class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px" viewBox="0 0 24 24"><path d="M12 0c1 6 5 10 12 12-7 2-11 6-12 12-1-6-5-10-12-12 7-2 11-6 12-12z"/></svg>`);
+  });
+  [[8,30,120],[70,88,150],[60,20,110]].forEach(([x,y,w])=>{el.insertAdjacentHTML("beforeend",`<span class="hline" style="left:${x}%;top:${y}%;width:${w}px"></span>`);});
+})();
 
-function getCookie(n){
-  const m = document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;]+)"); return m?m.pop():"";
-}
-function getUTM(){
-  const p = new URLSearchParams(location.search);
-  return {
-    utm_source:   p.get("utm_source")   || "",
-    utm_campaign: p.get("utm_campaign") || "",
-    utm_content:  p.get("utm_content")  || "",
-    utm_medium:   p.get("utm_medium")   || ""
-  };
-}
-function fire(event, extra){          // Meta pixel hook (real pixel added on build day 5)
-  if (window.fbq) window.fbq("trackCustom", event, Object.assign({eventID:eventId}, extra||{}));
-}
-
-function renderDots(){
-  dotsEl.innerHTML = "";
-  for (let i=0;i<TOTAL;i++){
-    const d=document.createElement("span");
-    d.className="dot"+(i<idx?" done":"")+(i===idx?" active":"");
-    dotsEl.appendChild(d);
-  }
-}
-
-/* ============================================================
-   QUESTION SCREENS
-   ============================================================ */
+/* ============================================================ QUESTIONS */
 function renderQuestion(){
   renderDots();
-  const Q = QUESTIONS[idx];
-  const chosen = answers[Q.id];
-
-  const wrap = document.createElement("div");
-  wrap.className = "step";
-  wrap.innerHTML =
-    `<p class="q-count">Question ${idx+1} of ${TOTAL}</p>
+  const Q=QUESTIONS[idx]; const multi=!!Q.multi;
+  const chosen=answers[Q.id]||(multi?[]:null);
+  const wrap=document.createElement("div"); wrap.className="step";
+  const introHTML = idx===0
+    ? `<div class="intro"><h2>Harmonium Quiz</h2><ul>
+         <li>You don't need special talent, you need the <b>right path and guidance</b>.</li>
+         <li>Answer the questions below and receive your <b>personal player type</b> and your <b>best next step</b>.</li>
+         <li>Get instant access to the <b>free Harmonium masterclass</b>.</li>
+       </ul></div>`
+    : "";
+  wrap.innerHTML=
+    `${introHTML}
+     <span class="q-count">Question ${idx+1} of ${TOTAL}</span>
      <h1 class="q">${Q.q}</h1>
-     ${Q.hint ? `<p class="hint">${Q.hint}</p>` : ""}
+     <p class="sublabel ${multi?"all":"one"}">${multi?"Select 1 or more":"Select 1 reply that fits you best"}</p>
+     ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
      <div class="options"></div>
      <div class="row">
-       ${idx>0 ? `<button class="btn btn-ghost" id="back">← Back</button>` : ""}
-       <button class="btn btn-primary" id="next" disabled>${idx===TOTAL-1 ? "See my result" : "Continue"}</button>
+       ${idx>0?`<button class="btn-ghost" id="back">← Back</button>`:""}
+       <button class="btn-primary" id="next" disabled>${idx===TOTAL-1?"See my result":"Next →"}</button>
      </div>`;
-
-  const optsBox = wrap.querySelector(".options");
+  const box=wrap.querySelector(".options"); const next=wrap.querySelector("#next");
+  const isSel=v=>multi?chosen.includes(v):chosen===v;
+  const refresh=()=>{const any=multi?(answers[Q.id]||[]).length>0:!!answers[Q.id];next.disabled=!any;};
   Q.opts.forEach(([val,label])=>{
     const b=document.createElement("button");
-    b.className="opt"+(chosen===val?" sel":"");
+    b.className="opt"+(multi?" multi":"")+(isSel(val)?" sel":"");
     b.innerHTML=`<span class="mark"></span><span>${label}</span>`;
     b.onclick=()=>{
-      answers[Q.id]=val;
-      optsBox.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));
-      b.classList.add("sel");
-      wrap.querySelector("#next").disabled=false;
-      if (!started){ started=true; fire("QuizStart"); }  // first answer = engaged
+      if(multi){const arr=answers[Q.id]||[];
+        if(arr.includes(val)){answers[Q.id]=arr.filter(x=>x!==val);b.classList.remove("sel");}
+        else{answers[Q.id]=[...arr,val];b.classList.add("sel");}}
+      else{answers[Q.id]=val;box.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));b.classList.add("sel");}
+      if(!started){started=true;fire("QuizStart");} refresh();
     };
-    optsBox.appendChild(b);
+    box.appendChild(b);
   });
-
-  swap(wrap);
-  if (chosen) wrap.querySelector("#next").disabled=false;
-  const back=wrap.querySelector("#back"); if(back) back.onclick=()=>{ idx--; renderQuestion(); };
-  wrap.querySelector("#next").onclick=()=>{
-    if (idx===TOTAL-1) renderEmail(); else { idx++; renderQuestion(); }
-  };
+  swap(wrap); refresh();
+  const back=wrap.querySelector("#back"); if(back)back.onclick=()=>{idx--;renderQuestion();};
+  next.onclick=()=>{ if(idx===TOTAL-1)renderEmail(); else{idx++;renderQuestion();} };
 }
 
-/* ============================================================
-   EMAIL STEP  (the moment someone becomes a Lead)
-   ============================================================ */
+/* ============================================================ EMAIL */
 function renderEmail(){
   renderDots();
-  const wrap=document.createElement("div");
-  wrap.className="step";
+  const wrap=document.createElement("div"); wrap.className="step";
   wrap.innerHTML=
-    `<p class="q-count">Last step</p>
+    `<span class="q-count">Last step</span>
      <h1 class="q">Your result is ready.</h1>
-     <p class="hint">Where should I send your personal plan and the free masterclass?</p>
+     <p class="sublabel one">Where should I send your personal plan and the free masterclass?</p>
+     <div class="kenny">
+       <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
+       <p>I read every answer myself and send you a plan that fits where you are. <b>Kenny</b></p>
+     </div>
      <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" /></div>
      <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" /></div>
-     <div class="field"><label for="wa">WhatsApp number <span style="color:var(--cream-faint)">(optional)</span></label><input id="wa" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
+     <div class="field"><label for="wa">WhatsApp number <span style="color:var(--ink-faint)">(optional)</span></label><input id="wa" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
      <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me my plan, the masterclass and helpful lessons by email.</span></label>
      <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
      <div class="err" id="err"></div>
      <div class="row">
-       <button class="btn btn-ghost" id="back">← Back</button>
-       <button class="btn btn-primary" id="submit">Show my result</button>
+       <button class="btn-ghost" id="back">← Back</button>
+       <button class="btn-primary" id="submit">Show my result</button>
      </div>
      <p class="fine">We respect your privacy. See our <a href="https://harmoniumevolution.com/privacy" target="_blank" rel="noopener">privacy policy</a>. Unsubscribe anytime.</p>`;
   swap(wrap);
-  wrap.querySelector("#back").onclick=()=>{ idx=TOTAL-1; renderQuestion(); };
+  wrap.querySelector("#back").onclick=()=>{idx=TOTAL-1;renderQuestion();};
   wrap.querySelector("#submit").onclick=submit;
 }
 
@@ -409,71 +339,29 @@ function submit(){
   const cEmail=document.getElementById("c-email").checked;
   const cWa=document.getElementById("c-wa").checked;
   const err=document.getElementById("err");
-
-  if(!fn){ err.textContent="Please add your first name."; return; }
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ err.textContent="Please enter a valid email."; return; }
-  if(!cEmail){ err.textContent="Please tick the box so I can send your plan."; return; }
-  err.textContent="";
-
-  const btn=document.getElementById("submit");
-  btn.disabled=true; btn.textContent="One moment…";
-
-  const r=computeRoute(answers);
-  const utm=getUTM();
-  const payload={
-    event_id:eventId,
-    first_name:fn, email:em,
-    whatsapp: cWa ? wa : "",
-    email_consent:cEmail, whatsapp_consent: cWa && !!wa,
-    answers:answers,
-    route:r.route, qualified:r.qualified, advanced:r.advanced,
-    utm_source:utm.utm_source, utm_campaign:utm.utm_campaign,
-    utm_content:utm.utm_content, utm_medium:utm.utm_medium,
-    fbp:getCookie("_fbp"), fbc:getCookie("_fbc"),
-    page_url:location.href
-  };
-
-  fire("Lead");
-  if(r.qualified) fire("QualifiedLead");
-
-  saveToSupabase(payload).finally(()=>redirect(r, fn));
+  if(!fn){err.textContent="Please add your first name.";return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent="Please enter a valid email.";return;}
+  if(!cEmail){err.textContent="Please tick the box so I can send your plan.";return;}
+  err.textContent=""; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
+  const r=computeRoute(answers); const utm=getUTM();
+  const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,whatsapp_consent:cWa&&!!wa,
+    answers:answers,route:r.route,qualified:r.qualified,advanced:r.advanced,
+    utm_source:utm.utm_source,utm_campaign:utm.utm_campaign,utm_content:utm.utm_content,utm_medium:utm.utm_medium,
+    fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href};
+  fire("Lead"); if(r.qualified)fire("QualifiedLead");
+  saveToSupabase(payload).finally(()=>redirect(r,fn));
 }
-
-/* ============================================================
-   SUPABASE  (writes one row; keys are public/anon on purpose)
-   ============================================================ */
-function saveToSupabase(payload){
-  return fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.SUPABASE_TABLE}`,{
-    method:"POST",
-    headers:{
-      "apikey":CONFIG.SUPABASE_ANON_KEY,
-      "Authorization":"Bearer "+CONFIG.SUPABASE_ANON_KEY,
-      "Content-Type":"application/json",
-      "Prefer":"return=minimal"
-    },
-    body:JSON.stringify(payload)
-  }).catch(e=>console.error("Supabase save failed (continuing anyway):",e));
+function saveToSupabase(p){
+  return fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.SUPABASE_TABLE}`,{method:"POST",
+    headers:{"apikey":CONFIG.SUPABASE_ANON_KEY,"Authorization":"Bearer "+CONFIG.SUPABASE_ANON_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
+    body:JSON.stringify(p)}).catch(e=>console.error("Supabase save failed (continuing):",e));
 }
-
-/* ============================================================
-   REDIRECT to the right result page, carrying light personalisation
-   ============================================================ */
-function redirect(r, firstName){
-  const base=CONFIG.RESULT_URLS[r.route] || CONFIG.RESULT_URLS.D;
-  const q=new URLSearchParams({
-    fn:firstName,
-    role:answers.place||"",
-    frustration:answers.blocker||"",
-    goal:answers.sixmonths||"",
-    route:r.route
-  });
-  location.href = base + (base.includes("?")?"&":"?") + q.toString();
+function redirect(r,fn){
+  const base=CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D;
+  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route});
+  location.href=base+(base.includes("?")?"&":"?")+q.toString();
 }
-
-/* utility: fade the stage */
-function swap(node){ stage.innerHTML=""; stage.appendChild(node); window.scrollTo({top:0,behavior:"instant"}); }
-
-/* go */
+function swap(node){stage.innerHTML="";stage.appendChild(node);window.scrollTo({top:0,behavior:"instant"});}
 renderQuestion();
 </script>
 </body>
