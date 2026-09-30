@@ -6,7 +6,7 @@
 <title>Harmonium Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root{
     --teal-1:#12514a; --teal-2:#0f3d4c; --teal-3:#0c3144;
@@ -31,48 +31,54 @@
   .star{position:absolute;fill:var(--gold);opacity:.55;}
   .hline{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(232,185,112,.5),transparent);opacity:.5;}
 
-  .wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px) 18px;}
+  .wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(18px,3vw,40px) 18px;}
 
-  .card{width:100%;max-width:600px;background:linear-gradient(180deg,var(--cream-2),var(--cream));
+  /* desktop: photos flanking the card */
+  .hero-row{display:flex;align-items:center;justify-content:center;gap:34px;width:100%;}
+  .side-img{width:215px;height:270px;object-fit:cover;border-radius:16px;border:3px solid var(--gold);box-shadow:0 24px 48px -20px rgba(0,0,0,.5);flex:none;}
+
+  .card{width:100%;max-width:720px;background:linear-gradient(180deg,var(--cream-2),var(--cream));
     border:1px solid rgba(232,185,112,.5);border-radius:22px;
     box-shadow:0 30px 70px -28px rgba(0,0,0,.55);
-    padding:clamp(22px,5vw,40px) clamp(20px,5vw,44px) clamp(26px,5vw,40px);}
+    padding:clamp(24px,4vw,40px) clamp(24px,5vw,52px) clamp(28px,4vw,40px);}
 
-  .topimg{width:76px;height:76px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;
-    border:2px solid rgba(232,185,112,.7);box-shadow:0 6px 16px -6px rgba(18,50,68,.4);}
-  .logo{display:block;height:34px;margin:0 auto 20px;width:auto;}
-  .dots{display:flex;gap:7px;justify-content:center;margin:0 0 24px;flex-wrap:wrap;}
+  .logo{display:block;height:54px;width:auto;margin:0 auto 16px;}
+  .topimg{width:100%;height:150px;object-fit:cover;object-position:center 35%;border-radius:12px;display:block;margin:0 auto 18px;}
+  .dots{display:flex;gap:7px;justify-content:center;margin:0 0 22px;flex-wrap:wrap;}
   .dot{width:7px;height:7px;border-radius:50%;background:rgba(18,50,68,.15);transition:all .4s ease;}
   .dot.done{background:var(--gold-deep);}
   .dot.active{background:var(--action);box-shadow:0 0 9px 1px rgba(0,139,157,.85);transform:scale(1.3);}
 
-  /* intro (screen 1) */
-  .intro{margin:0 0 38px;}
-  .intro h2{font-family:'Poppins',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,44px);line-height:1.08;margin:0 0 24px;color:var(--indigo);text-align:center;}
-  .intro ul{list-style:none;margin:0 auto;padding:0;text-align:left;max-width:44ch;}
-  .intro li{position:relative;padding-left:28px;font-size:clamp(16px,2.5vw,18.5px);color:var(--ink-soft);line-height:1.5;margin-bottom:12px;}
-  .intro li::before{content:"";position:absolute;left:2px;top:.5em;width:9px;height:9px;border-radius:50%;background:var(--gold);}
-  .intro li b{color:var(--indigo);font-weight:600;}
-
-  .step{animation:rise .45s cubic-bezier(.2,.7,.2,1);}
+  /* screen 1 lays out as a flex column so mobile can reorder */
+  .step{display:flex;flex-direction:column;animation:rise .45s cubic-bezier(.2,.7,.2,1);}
   @keyframes rise{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:none;}}
+  .intro-title{order:0;}
+  .intro-bullets{order:1;}
+  .quiz{order:2;text-align:center;}
+
+  .intro-title h2{font-family:'Poppins',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,44px);line-height:1.08;margin:0 0 22px;color:var(--indigo);text-align:center;}
+  .intro-bullets ul{list-style:none;margin:0 auto;padding:0;text-align:left;max-width:46ch;}
+  .intro-bullets li{position:relative;padding-left:28px;font-size:clamp(16px,2.2vw,18px);color:var(--ink-soft);line-height:1.5;margin-bottom:12px;}
+  .intro-bullets li::before{content:"";position:absolute;left:2px;top:.5em;width:9px;height:9px;border-radius:50%;background:var(--gold);}
+  .intro-bullets li b{color:var(--indigo);font-weight:600;}
+  .uline{height:2px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.10);border-radius:2px;margin:24px auto 30px;width:100%;max-width:520px;}
+  .m-only{display:none;}
 
   .q-count{display:inline-flex;align-items:center;gap:12px;font-family:'Poppins',sans-serif;font-weight:600;font-size:25px;letter-spacing:.01em;
-    color:#b08f3a;background:none;padding:0;margin-bottom:14px;box-shadow:none;}
+    color:#b08f3a;margin-bottom:14px;}
   .q-count::before{content:"";width:32px;height:3px;background:#b08f3a;border-radius:2px;}
 
-  h1.q{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(31px,6.8vw,48px);line-height:1.08;margin:0 0 10px;color:var(--action);}
+  h1.q{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(31px,6.8vw,48px);line-height:1.08;margin:0 0 10px;color:var(--action);text-align:center;}
 
   .sublabel{font-family:'Inter',sans-serif;font-weight:600;font-size:15px;margin:0 0 22px;}
   .sublabel.one{color:var(--ink-soft);font-style:italic;}
   .sublabel.all{color:var(--action-deep);}
   .hint{font-size:15px;color:var(--ink-soft);margin:0 0 20px;font-style:italic;}
 
-  /* replies */
-  .options{display:flex;flex-direction:column;gap:14px;}
+  .options{display:flex;flex-direction:column;gap:13px;text-align:left;max-width:600px;margin:0 auto;}
   .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
     font-family:'Inter',sans-serif;font-size:19px;color:#fff;
-    background:var(--action);border:1.5px solid var(--action);border-radius:14px;padding:18px 20px;cursor:pointer;
+    background:var(--action);border:1.5px solid var(--action);border-radius:14px;padding:17px 20px;cursor:pointer;
     box-shadow:0 8px 20px -14px rgba(0,139,157,.9);
     transition:background .16s,border-color .16s,box-shadow .16s,transform .1s;}
   .opt:hover{background:var(--action-deep);border-color:var(--action-deep);box-shadow:0 10px 22px -12px rgba(0,139,157,.95);transform:translateY(-1px);}
@@ -85,9 +91,7 @@
   .opt:not(.multi).sel .mark::after{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--gold);}
   .opt.multi.sel .mark::after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;border:2px solid var(--gold);border-top:0;border-left:0;transform:rotate(40deg);}
 
-  /* buttons */
-  .row{display:flex;gap:12px;align-items:center;margin-top:28px;}
-  /* the homepage golden button, with the shine sweep */
+  .row{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:26px;max-width:600px;margin-left:auto;margin-right:auto;}
   .btn-primary{font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;
     color:var(--gold-ink);background:linear-gradient(135deg,#F2C879 0%,#D99A45 100%);
     border:0;border-radius:3px;padding:19px 42px;margin-left:auto;position:relative;overflow:hidden;cursor:pointer;
@@ -101,39 +105,59 @@
   .btn-ghost{font-family:'Inter',sans-serif;font-weight:500;background:transparent;border:0;color:var(--ink-soft);font-size:16px;padding:15px 6px;cursor:pointer;transition:color .15s;}
   .btn-ghost:hover{color:var(--ink);}
 
-  .kenny{display:flex;align-items:center;gap:13px;background:rgba(0,139,157,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 22px;}
+  .kenny{display:flex;align-items:center;gap:13px;background:rgba(0,139,157,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 auto 22px;max-width:560px;text-align:left;}
   .kenny img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(232,185,112,.7);}
   .kenny p{margin:0;font-size:14px;color:var(--ink-soft);line-height:1.4;}
   .kenny b{color:var(--ink);font-weight:600;}
-  .field{margin:0 0 15px;}
+  .field{margin:0 auto 15px;max-width:560px;text-align:left;}
   .field label{display:block;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink-soft);margin-bottom:6px;}
   .field input{width:100%;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;}
   .field input:focus{outline:none;border-color:var(--action);box-shadow:0 0 0 3px rgba(0,139,157,.14);}
-  .check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink-soft);margin:0 0 11px;cursor:pointer;line-height:1.4;}
+  .check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--ink-soft);margin:0 auto 11px;cursor:pointer;line-height:1.4;max-width:560px;text-align:left;}
   .check input{margin-top:2px;accent-color:var(--action);width:17px;height:17px;flex:none;}
-  .fine{font-size:12px;color:var(--ink-faint);margin-top:8px;}
+  .fine{font-size:12px;color:var(--ink-faint);margin:8px auto 0;max-width:560px;}
   .fine a{color:var(--action-deep);}
   .err{color:#b23a2e;font-size:14px;margin:8px 0 0;min-height:1em;}
 
   /* social proof */
-  .proof{position:relative;z-index:1;width:100%;max-width:600px;margin:24px auto 0;text-align:center;color:rgba(255,252,246,.9);}
-  .stats{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 26px;margin-bottom:18px;}
+  .proof{position:relative;z-index:1;width:100%;max-width:520px;margin:26px auto 0;text-align:center;color:rgba(255,252,246,.9);}
+  .stats{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 30px;margin-bottom:20px;}
   .stats .item{display:flex;flex-direction:column;line-height:1.1;}
-  .stats .big{font-family:'Poppins',sans-serif;font-size:30px;color:var(--gold);font-weight:800;}
-  .stats .lbl{font-family:'Inter',sans-serif;font-size:12.5px;letter-spacing:.03em;color:rgba(255,252,246,.78);}
-  .stars{color:var(--gold);letter-spacing:2px;font-size:21px;}
-  .reviews{display:flex;flex-direction:column;align-items:center;gap:12px;}
-  .rev{border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;max-width:100%;height:auto;}
-  .rev.feat{max-width:470px;width:100%;}
-  .revrow{display:flex;gap:12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;}
-  .revrow .rev{max-width:230px;}
+  .stats .big{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold);font-weight:700;}
+  .stats .lbl{font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.03em;color:rgba(255,252,246,.78);}
+  .stars{color:var(--gold);letter-spacing:2px;font-size:22px;}
+  .reviews{display:flex;flex-direction:column;align-items:center;gap:16px;}
+  .rev{width:100%;max-width:480px;border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;height:auto;}
 
-  .sitefooter{position:relative;z-index:1;width:100%;background:var(--cream);margin-top:34px;padding:34px 20px 30px;text-align:center;}
-  .sitefooter .flogo{height:30px;width:auto;margin:0 auto 16px;display:block;}
+  .sitefooter{position:relative;z-index:1;width:100%;background:var(--cream);margin-top:36px;padding:36px 20px 30px;text-align:center;}
+  .sitefooter .flogo{height:52px;width:auto;margin:0 auto 18px;display:block;}
   .flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:18px;font-family:'Inter',sans-serif;font-size:14px;}
   .flinks a{color:var(--ink-soft);text-decoration:none;}
   .flinks a:hover{color:var(--action-deep);}
   .legal{font-family:'Inter',sans-serif;font-size:11.5px;color:var(--ink-faint);line-height:1.6;max-width:640px;margin:0 auto;}
+
+  /* photo under the footer, mobile only */
+  .after-footer{display:none;}
+
+  /* ============ MOBILE ============ */
+  @media (max-width:900px){ .side-img{display:none;} .hero-row{gap:0;} }
+  @media (max-width:700px){
+    .wrap{padding:8px 6px;}
+    .card{padding:20px 16px 26px;border-radius:16px;}
+    .logo{display:none;}                 /* logo only in the footer on mobile */
+    .topimg{height:120px;margin-bottom:14px;}
+    .intro-bullets{order:3;}             /* bullets move below the quiz */
+    .d-only{display:none;} .m-only{display:inline;}
+    .uline{margin:20px auto 6px;}
+    .opt{padding:13px 16px;font-size:18px;}
+    .btn-primary{padding:14px 30px;}
+    .row{margin-top:22px;}
+    .stats{flex-wrap:nowrap;gap:4px 14px;}
+    .stats .big{font-size:22px;}
+    .stats .lbl{font-size:9.5px;}
+    .stars{font-size:15px;}
+    .after-footer{display:block;width:100%;max-width:520px;height:auto;margin:0 auto;}
+  }
 
   @media (prefers-reduced-motion:reduce){.step{animation:none;}.dot{transition:none;}.btn-primary:hover,.opt:hover{transform:none;}}
 </style>
@@ -142,11 +166,15 @@
 <div class="decor" id="decor" aria-hidden="true"></div>
 
 <div class="wrap">
-  <div class="card">
-    <img class="topimg" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba323b4838.22031802_e8fe63-d4b-4a6a-e53e-e182e270184f_hand_close_correct-01.jpg" alt="Playing the harmonium" />
-    <img class="logo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
-    <div class="dots" id="dots" aria-hidden="true"></div>
-    <div id="stage" aria-live="polite"></div>
+  <div class="hero-row">
+    <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
+    <div class="card">
+      <img class="logo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+      <img class="topimg" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba323b4838.22031802_e8fe63-d4b-4a6a-e53e-e182e270184f_hand_close_correct-01.jpg" alt="Playing the harmonium" />
+      <div class="dots" id="dots" aria-hidden="true"></div>
+      <div id="stage" aria-live="polite"></div>
+    </div>
+    <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba307b7582.46663061_ca1e6021-220f-4fd3-b872-b78debf40aa1.jpg" alt="Playing the harmonium" />
   </div>
 
   <div class="proof">
@@ -156,11 +184,9 @@
       <div class="item"><span class="big">18</span><span class="lbl">YEARS OF TEACHING</span></div>
     </div>
     <div class="reviews">
-      <img class="rev feat" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
-      <div class="revrow">
-        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
-        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/thumb_150/6ab62fe8f0acc9.85756707_des.png" alt="Student review" />
-      </div>
+      <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
+      <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
+      <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8f0acc9.85756707_des.png" alt="Student review" />
     </div>
   </div>
 </div>
@@ -183,6 +209,7 @@
     This website is not part of Google or Google LLC, and is NOT endorsed by Google in any way. GOOGLE is a trademark of GOOGLE LLC.
   </p>
 </footer>
+<img class="after-footer" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
 
 <script>
 /* ============================================================ CONFIG */
@@ -265,23 +292,26 @@ function renderQuestion(){
   const Q=QUESTIONS[idx]; const multi=!!Q.multi;
   const chosen=answers[Q.id]||(multi?[]:null);
   const wrap=document.createElement("div"); wrap.className="step";
-  const introHTML = idx===0
-    ? `<div class="intro"><h2>Harmonium Quiz</h2><ul>
+  const intro = idx===0
+    ? `<div class="intro-title"><h2>Harmonium Quiz</h2></div>
+       <div class="intro-bullets"><ul>
          <li>You don't need special talent, you need the <b>right path and guidance</b>.</li>
-         <li>Answer the questions below and receive your <b>personal player type</b> and your <b>best next step</b>.</li>
-         <li>Get instant access to the <b>free Harmonium masterclass</b>.</li>
-       </ul></div>`
+         <li>Answer the questions <span class="d-only">below</span><span class="m-only">above</span> and receive your <b>personal player type</b> and your <b>best next step</b>.</li>
+         <li>Get instant access to the <b>free Harmonium Masterclass</b>: "The 7 Principles of Harmonium Playing, 33min".</li>
+       </ul><div class="uline"></div></div>`
     : "";
   wrap.innerHTML=
-    `${introHTML}
-     <span class="q-count">Question ${idx+1} of ${TOTAL}</span>
-     <h1 class="q">${Q.q}</h1>
-     <p class="sublabel ${multi?"all":"one"}">${multi?"Select 1 or more":"Select 1 reply that fits you best"}</p>
-     ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
-     <div class="options"></div>
-     <div class="row">
-       ${idx>0?`<button class="btn-ghost" id="back">← Back</button>`:""}
-       <button class="btn-primary" id="next" disabled>${idx===TOTAL-1?"See my result":"Next →"}</button>
+    `${intro}
+     <div class="quiz">
+       <span class="q-count">Question ${idx+1} of ${TOTAL}</span>
+       <h1 class="q">${Q.q}</h1>
+       <p class="sublabel ${multi?"all":"one"}">${multi?"Select 1 or more":"Select 1 reply that fits you best"}</p>
+       ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
+       <div class="options"></div>
+       <div class="row">
+         ${idx>0?`<button class="btn-ghost" id="back">← Back</button>`:""}
+         <button class="btn-primary" id="next" disabled>${idx===TOTAL-1?"See my result":"Next →"}</button>
+       </div>
      </div>`;
   const box=wrap.querySelector(".options"); const next=wrap.querySelector("#next");
   const isSel=v=>multi?chosen.includes(v):chosen===v;
@@ -309,24 +339,26 @@ function renderEmail(){
   renderDots();
   const wrap=document.createElement("div"); wrap.className="step";
   wrap.innerHTML=
-    `<span class="q-count">Last step</span>
-     <h1 class="q">Your result is ready.</h1>
-     <p class="sublabel one">Where should I send your personal plan and the free masterclass?</p>
-     <div class="kenny">
-       <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
-       <p>I read every answer myself and send you a plan that fits where you are. <b>Kenny</b></p>
-     </div>
-     <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" /></div>
-     <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" /></div>
-     <div class="field"><label for="wa">WhatsApp number <span style="color:var(--ink-faint)">(optional)</span></label><input id="wa" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
-     <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me my plan, the masterclass and helpful lessons by email.</span></label>
-     <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
-     <div class="err" id="err"></div>
-     <div class="row">
-       <button class="btn-ghost" id="back">← Back</button>
-       <button class="btn-primary" id="submit">Show my result</button>
-     </div>
-     <p class="fine">We respect your privacy. See our <a href="https://harmoniumevolution.com/privacy" target="_blank" rel="noopener">privacy policy</a>. Unsubscribe anytime.</p>`;
+    `<div class="quiz">
+       <span class="q-count">Last step</span>
+       <h1 class="q">Your result is ready.</h1>
+       <p class="sublabel one">Where should I send your personal plan and the free masterclass?</p>
+       <div class="kenny">
+         <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
+         <p>I read every answer myself and send you a plan that fits where you are. <b>Kenny</b></p>
+       </div>
+       <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" /></div>
+       <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" /></div>
+       <div class="field"><label for="wa">WhatsApp number <span style="color:var(--ink-faint)">(optional)</span></label><input id="wa" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
+       <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me my plan, the masterclass and helpful lessons by email.</span></label>
+       <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
+       <div class="err" id="err"></div>
+       <div class="row">
+         <button class="btn-ghost" id="back">← Back</button>
+         <button class="btn-primary" id="submit">Show my result</button>
+       </div>
+       <p class="fine">We respect your privacy. See our <a href="https://harmoniumevolution.com/privacy" target="_blank" rel="noopener">privacy policy</a>. Unsubscribe anytime.</p>
+     </div>`;
   swap(wrap);
   wrap.querySelector("#back").onclick=()=>{idx=TOTAL-1;renderQuestion();};
   wrap.querySelector("#submit").onclick=submit;
