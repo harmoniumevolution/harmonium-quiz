@@ -105,6 +105,12 @@
   .btn-cta:hover{animation-play-state:paused;}
   .back-sm{display:block;margin:18px auto 0;}
   .q.result-big{font-size:clamp(30px,5vw,46px);}
+  .chk{color:#10B981;font-weight:800;font-size:1.12em;}
+  .email-sub{font-style:normal;font-weight:600;color:var(--ink-soft);font-size:clamp(18px,2.6vw,24px);max-width:48ch;}
+  .cc-row{display:flex;gap:8px;}
+  .cc-row #wa{flex:1;}
+  .cc{flex:none;font-family:'Inter',sans-serif;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:13px 8px;}
+  .cc:focus{outline:none;border-color:var(--action);}
   .kenny-photo{display:block;width:100%;max-width:200px;height:auto;margin:6px auto 18px;border-radius:12px;}
   .fine.privacy{margin-top:30px;max-width:52ch;}
   @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 14px 40px rgba(232,185,112,.45),0 0 0 1px rgba(255,250,247,.2) inset;}50%{transform:scale(1.06);box-shadow:0 22px 54px rgba(232,185,112,.7),0 0 0 1px rgba(255,250,247,.35) inset;}}
@@ -167,6 +173,8 @@
     .btn-primary{padding:14px 30px;}
     .row{margin-top:22px;}
     .btn-cta{font-size:19px;padding:20px 30px;width:100%;max-width:440px;}
+    .q.result-big{font-size:clamp(34px,9vw,44px);}
+    .email-sub{font-size:clamp(19px,5vw,23px);}
     .intro-foot{margin-top:14px;padding:0 16px 26px;}
     .mc-line{font-size:clamp(16px,4.5vw,18px);}
     .kenny-quote{font-size:clamp(28px,7vw,34px);margin-top:24px;}
@@ -177,7 +185,7 @@
     .before-footer{display:block;width:100%;max-width:520px;margin:16px auto 0;height:auto;}
   }
 
-  @media (prefers-reduced-motion:reduce){.step{animation:none;}.dot{transition:none;}.btn-primary:hover,.opt:hover{transform:none;}.btn-cta{animation:none;}}
+  @media (prefers-reduced-motion:reduce){.step{animation:none;}.dot{transition:none;}.btn-primary:hover,.opt:hover{transform:none;}}
 </style>
 </head>
 <body>
@@ -293,6 +301,7 @@ function computeRoute(a){
 const answers={}; let idx=0; let started=false;
 const stage=document.getElementById("stage"), dotsEl=document.getElementById("dots");
 const TOTAL=QUESTIONS.length;
+const CC_OPTIONS=[["+1","🇺🇸"],["+44","🇬🇧"],["+1","🇨🇦"],["+61","🇦🇺"],["+64","🇳🇿"],["+353","🇮🇪"],["+31","🇳🇱"],["+32","🇧🇪"],["+49","🇩🇪"],["+33","🇫🇷"],["+34","🇪🇸"],["+39","🇮🇹"],["+351","🇵🇹"],["+41","🇨🇭"],["+43","🇦🇹"],["+46","🇸🇪"],["+47","🇳🇴"],["+45","🇩🇰"],["+358","🇫🇮"],["+91","🇮🇳"],["+971","🇦🇪"],["+65","🇸🇬"],["+27","🇿🇦"]].map(([c,f],i)=>`<option value="${c}"${i===0?" selected":""}>${f} ${c}</option>`).join("");
 function uuid(){return (crypto.randomUUID&&crypto.randomUUID())||"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==="x"?r:(r&0x3|0x8)).toString(16);});}
 const eventId=uuid();
 function getCookie(n){const m=document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;]+)");return m?m.pop():"";}
@@ -379,16 +388,20 @@ function renderQuestion(){
 /* ============================================================ EMAIL */
 function renderEmail(){
   renderDots();
-  { const _ti=document.querySelector(".topimg"); if(_ti)_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg"; }
+  { const _ti=document.querySelector(".topimg"); if(_ti)_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png"; }
   const wrap=document.createElement("div"); wrap.className="step";
   wrap.innerHTML=
     `<div class="quiz">
-       <h1 class="q result-big">✔️ Your result is ready.</h1>
-       <p class="sublabel one">Where should I send you the free masterclass + your personal quiz results?</p>
-       <img class="kenny-photo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png" alt="Kenny Clarys" />
+       <h1 class="q result-big"><span class="chk">✓</span> Your result is ready.</h1>
+       <p class="sublabel one email-sub">Where should I send you the free masterclass + your personal quiz results?</p>
        <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" placeholder="Type Your First Name" /></div>
        <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="Type Your Best Email Address" /></div>
-       <div class="field"><label for="wa">WhatsApp number <span style="color:var(--ink-faint)">(optional)</span></label><input id="wa" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
+       <div class="field"><label for="wa">WhatsApp number <span style="color:var(--ink-faint)">(optional)</span></label>
+         <div class="cc-row">
+           <select id="cc" aria-label="Country code">${CC_OPTIONS}</select>
+           <input id="wa" type="tel" autocomplete="tel" placeholder="Your number" />
+         </div>
+       </div>
        <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me the masterclass, my results and helpful lessons by email.</span></label>
        <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
        <div class="err" id="err"></div>
@@ -404,7 +417,7 @@ function renderEmail(){
 function submit(){
   const fn=document.getElementById("fn").value.trim();
   const em=document.getElementById("em").value.trim();
-  const wa=document.getElementById("wa").value.trim();
+  const _waNum=document.getElementById("wa").value.trim(); const _cc=document.getElementById("cc"); const wa=_waNum?(((_cc&&_cc.value)||"")+" "+_waNum).trim():"";
   const cEmail=document.getElementById("c-email").checked;
   const cWa=document.getElementById("c-wa").checked;
   const err=document.getElementById("err");
