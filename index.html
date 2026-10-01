@@ -101,13 +101,13 @@
   .btn-ghost:hover{color:var(--ink);}
   .row.center{justify-content:center;}
   .row.center .btn-primary{margin-left:0;}
-  .btn-cta{text-transform:none;font-size:clamp(16px,2vw,19px);padding:20px 40px;white-space:normal;max-width:540px;line-height:1.3;animation:pulse 1.9s ease-in-out infinite;}
+  .btn-cta{text-transform:none;font-size:clamp(17px,2.2vw,21px);padding:22px 48px;white-space:normal;max-width:540px;line-height:1.3;animation:pulse 1.6s ease-in-out infinite;}
   .btn-cta:hover{animation-play-state:paused;}
   .back-sm{display:block;margin:18px auto 0;}
   .q.result-big{font-size:clamp(30px,5vw,46px);}
-  .kenny-photo{display:block;width:100%;max-width:400px;height:auto;margin:6px auto 18px;border-radius:12px;}
+  .kenny-photo{display:block;width:100%;max-width:200px;height:auto;margin:6px auto 18px;border-radius:12px;}
   .fine.privacy{margin-top:30px;max-width:52ch;}
-  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.035);}}
+  @keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 14px 40px rgba(232,185,112,.45),0 0 0 1px rgba(255,250,247,.2) inset;}50%{transform:scale(1.06);box-shadow:0 22px 54px rgba(232,185,112,.7),0 0 0 1px rgba(255,250,247,.35) inset;}}
 
   .kenny{display:flex;align-items:center;gap:13px;background:rgba(0,139,157,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 auto 22px;max-width:560px;text-align:left;}
   .kenny img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(232,185,112,.7);}
@@ -136,8 +136,10 @@
   .stats .big{font-family:'Actor',sans-serif;font-size:40px;color:var(--gold);font-weight:700;}
   .stats .lbl{font-family:'Actor',sans-serif;font-size:13px;letter-spacing:.03em;color:rgba(255,252,246,.8);}
   .stars{color:var(--gold);letter-spacing:2px;font-size:28px;}
+  .trust-divider{width:100%;max-width:520px;height:1px;background:rgba(255,252,246,.2);margin:2px auto 0;}
+  .reviews-title{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--gold);font-size:clamp(20px,2.6vw,26px);margin:36px 0 20px;text-align:center;}
   .reviews{display:flex;flex-direction:column;align-items:center;gap:16px;}
-  .rev{width:100%;max-width:620px;border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;height:auto;}
+  .rev{width:100%;max-width:470px;border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;height:auto;}
 
   .before-footer{display:none;}
 
@@ -164,6 +166,7 @@
     .opt{padding:13px 16px;font-size:18px;}
     .btn-primary{padding:14px 30px;}
     .row{margin-top:22px;}
+    .btn-cta{font-size:19px;padding:20px 30px;width:100%;max-width:440px;}
     .intro-foot{margin-top:14px;padding:0 16px 26px;}
     .mc-line{font-size:clamp(16px,4.5vw,18px);}
     .kenny-quote{font-size:clamp(28px,7vw,34px);margin-top:24px;}
@@ -200,6 +203,8 @@
       <div class="item"><span class="big">850+</span><span class="lbl">STUDENTS WORLDWIDE</span></div>
       <div class="item"><span class="big">18</span><span class="lbl">YEARS OF TEACHING</span></div>
     </div>
+    <div class="trust-divider"></div>
+    <h3 class="reviews-title">What Our Students Are Saying</h3>
     <div class="reviews">
       <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
       <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
@@ -260,7 +265,7 @@ const QUESTIONS = [
   { id:"blocker", q:"What's holding you back most right now?", multi:true,
     opts:[["start","I don't know where to start"],["stuck","I learned from YouTube but I'm stuck"],["flat","My playing sounds flat, chords and rhythm don't flow"],["freedom","I want to play more freely: melody, improvisation, leading"]]},
   { id:"musiccheck", q:"Quick music check. Which notes make a C minor chord?",
-    hint:"No wrong door here, it just helps me meet you where you are.",
+    hint:"No wrong answer here, it just helps me meet you where you are.",
     opts:[["correct","C, E♭, G"],["cmajor","C, E, G"],["byear","I can follow it in a song, but not the theory"],["notsure","Not sure, but I'd love to finally understand chords"]]},
   { id:"harmonium", q:"Do you have a harmonium to practice on?",
     opts:[["yes","Yes"],["onway","It's on its way"],["notyet","Not yet"]]},
@@ -311,13 +316,14 @@ const QARROWS = `<img class="qarrow left" src="${ARROW_SRC}" alt="" aria-hidden=
 /* ============================================================ QUESTIONS */
 function renderQuestion(){
   renderDots();
+  { const _ti=document.querySelector(".topimg"); if(_ti)_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba323b4838.22031802_e8fe63-d4b-4a6a-e53e-e182e270184f_hand_close_correct-01.jpg"; }
   const Q=QUESTIONS[idx]; const multi=!!Q.multi; const last=idx===TOTAL-1;
   const chosen=answers[Q.id]||(multi?[]:null);
   const wrap=document.createElement("div"); wrap.className="step";
   const intro = idx===0
     ? `<div class="intro-wrap">
          <h2 class="ititle">Harmonium Quiz</h2>
-         <p class="hook">Discover your harmonium player type + the fastest way forward.<br>👇 Answer the questions below.</p>
+         <p class="hook">Discover your harmonium player type + the fastest way forward.<br>👇 <u>Answer the questions below.</u></p>
        </div>`
     : "";
   const introFoot = idx===0
@@ -361,7 +367,7 @@ function renderQuestion(){
         else{answers[Q.id]=[...arr,val];b.classList.add("sel");}}
       else{answers[Q.id]=val;box.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));b.classList.add("sel");}
       if(!started){started=true;fire("QuizStart");} refresh();
-      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{idx++;renderQuestion();},1500); }
+      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{idx++;renderQuestion();},800); }
     };
     box.appendChild(b);
   });
@@ -373,6 +379,7 @@ function renderQuestion(){
 /* ============================================================ EMAIL */
 function renderEmail(){
   renderDots();
+  { const _ti=document.querySelector(".topimg"); if(_ti)_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg"; }
   const wrap=document.createElement("div"); wrap.className="step";
   wrap.innerHTML=
     `<div class="quiz">
