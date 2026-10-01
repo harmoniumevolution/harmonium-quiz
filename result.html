@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Your Harmonium Result</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --teal-1:#12514a; --teal-2:#0f3d4c; --teal-3:#0c3144;
+    --gold:#E8B970; --gold-deep:#c9a84c;
+    --action:#008B9D; --action-deep:#00A6BB;
+    --cream:#FBF6EC; --cream-2:#FFFCF6;
+    --indigo:#0B0054; --indigo-bg:#0A1C50; --gold-ink:#1A0B3D;
+    --bright-green:#1FEEB8;
+    --ink:#123244; --ink-soft:#3c5c6e; --ink-faint:rgba(18,50,68,.5);
+    --line:rgba(18,50,68,.14);
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;min-height:100%;}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(90% 60% at 15% 0%, rgba(232,185,112,.16), transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, rgba(0,139,157,.14), transparent 55%),
+      linear-gradient(160deg, var(--teal-1) 0%, var(--teal-2) 52%, var(--teal-3) 100%);
+    background-attachment:fixed;}
+  .decor{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+  .star{position:absolute;fill:var(--gold);opacity:.5;}
+  .wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:6px 18px 40px;}
+
+  .card{width:100%;max-width:760px;background:var(--cream);border:1px solid rgba(232,185,112,.5);border-radius:6px;overflow:hidden;box-shadow:0 30px 70px -28px rgba(0,0,0,.55);}
+  .topband{background:var(--indigo-bg);color:#fff;text-align:center;padding:14px clamp(22px,4vw,50px);}
+  .topband img{height:46px;width:auto;margin:0 auto;display:block;filter:brightness(0) invert(1);}
+  .quiz{background:var(--cream);text-align:center;padding:36px clamp(24px,5vw,56px) 36px;position:relative;}
+  .quiz::before{content:"";position:absolute;top:-1px;left:0;width:100%;height:30px;background:var(--indigo-bg);clip-path:polygon(0 0,100% 0,0 100%);}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#b08f3a;margin:6px 0 14px;}
+  .eyebrow::before{content:"";width:26px;height:2px;background:#b08f3a;border-radius:2px;}
+  h1{font-family:'Fira Sans',sans-serif;font-weight:800;font-size:clamp(28px,4.4vw,40px);line-height:1.12;margin:0 0 16px;color:var(--action);}
+  .intro{font-size:clamp(16px,2vw,18px);color:var(--ink-soft);max-width:56ch;margin:0 auto 10px;}
+  .intro b{color:var(--ink);font-weight:600;}
+
+  .video{position:relative;width:100%;max-width:620px;margin:26px auto 8px;aspect-ratio:16/9;border-radius:12px;overflow:hidden;box-shadow:0 20px 44px -22px rgba(0,0,0,.6);background:#000;}
+  .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .video-cap{font-size:14px;color:var(--ink-faint);margin:0 0 6px;}
+
+  .offer{margin-top:30px;}
+  .price-note{font-size:clamp(16px,2vw,18px);color:var(--ink-soft);max-width:54ch;margin:0 auto 6px;}
+  .price-big{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(20px,2.6vw,26px);margin:6px 0 2px;}
+  .price-sub{font-size:14px;color:var(--ink-faint);margin:0 0 22px;}
+
+  .btn{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:clamp(16px,2vw,19px);letter-spacing:.04em;text-transform:none;
+    color:var(--gold-ink);background:linear-gradient(135deg,#F2C879 0%,#D99A45 100%);border:0;border-radius:3px;padding:20px 44px;
+    display:inline-block;text-decoration:none;position:relative;overflow:hidden;cursor:pointer;
+    box-shadow:0 14px 40px rgba(232,185,112,.45),0 0 0 1px rgba(255,250,247,.2) inset;transition:transform .15s ease,box-shadow .15s ease;}
+  .btn::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transition:left .7s ease;}
+  .btn:hover{transform:translateY(-3px);box-shadow:0 22px 56px rgba(232,185,112,.6),0 0 0 1px rgba(255,250,247,.3) inset;}
+  .btn:hover::after{left:100%;}
+
+  .cal-wrap{margin:8px auto 0;max-width:680px;}
+  .calendly-inline-widget{min-width:300px;height:700px;}
+
+  /* social proof */
+  .proof{position:relative;z-index:1;width:100%;max-width:760px;margin:26px auto 0;text-align:center;color:rgba(255,252,246,.9);}
+  .stats{display:flex;flex-wrap:wrap;justify-content:space-evenly;align-items:center;gap:12px 30px;margin-bottom:22px;}
+  .stats .item{display:flex;flex-direction:column;line-height:1.1;}
+  .stats .big{font-family:'Fira Sans',sans-serif;font-size:34px;color:var(--gold);font-weight:800;}
+  .stats .lbl{font-size:12px;letter-spacing:.03em;color:rgba(255,252,246,.78);}
+  .stars{color:var(--gold);letter-spacing:2px;font-size:24px;}
+  .rev{width:100%;max-width:470px;border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;height:auto;margin:0 auto;}
+
+  .sitefooter{position:relative;z-index:1;width:100%;background:var(--cream);margin-top:34px;padding:34px 20px 30px;text-align:center;}
+  .sitefooter .flogo{height:46px;width:auto;margin:0 auto 16px;display:block;}
+  .flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:16px;font-size:14px;}
+  .flinks a{color:var(--ink-soft);text-decoration:none;}
+  .legal{font-size:11.5px;color:var(--ink-faint);line-height:1.6;max-width:640px;margin:0 auto;}
+
+  @media (max-width:700px){
+    .wrap{padding:6px 6px 30px;}
+    .card{border-radius:3px;}
+    .quiz{padding:28px 16px 30px;}
+    .calendly-inline-widget{height:1000px;}
+  }
+</style>
+</head>
+<body>
+<div class="decor" id="decor" aria-hidden="true"></div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="topband">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+    </div>
+    <div class="quiz">
+      <span class="eyebrow">Your personal result</span>
+      <h1 id="headline">Your result is ready.</h1>
+      <p class="intro" id="intro"></p>
+
+      <p class="video-cap">▶️ Watch your free masterclass, "The 7 Principles of Harmonium Playing" (33 min)</p>
+      <div class="video"><iframe id="mc" src="" title="Harmonium Masterclass" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+
+      <div class="offer" id="offer"></div>
+    </div>
+  </div>
+
+  <div class="proof">
+    <div class="stats">
+      <div class="item"><span class="stars">★★★★★</span><span class="lbl">4.9 RATING</span></div>
+      <div class="item"><span class="big">850+</span><span class="lbl">STUDENTS WORLDWIDE</span></div>
+      <div class="item"><span class="big">18</span><span class="lbl">YEARS OF TEACHING</span></div>
+    </div>
+    <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
+  </div>
+</div>
+
+<footer class="sitefooter">
+  <img class="flogo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+  <nav class="flinks">
+    <a href="https://www.harmoniumevolution.com/about-us" target="_blank" rel="noopener">About</a>
+    <a href="https://www.harmoniumevolution.com/blog" target="_blank" rel="noopener">Resources</a>
+    <a href="https://www.harmoniumevolution.com/contact-us" target="_blank" rel="noopener">Contact</a>
+    <a href="https://www.harmoniumevolution.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>
+    <a href="https://www.harmoniumevolution.com/terms" target="_blank" rel="noopener">Terms of Service</a>
+    <a href="https://www.harmoniumevolution.com/disclaimer" target="_blank" rel="noopener">Disclaimer</a>
+  </nav>
+  <p class="legal">
+    © 2026 The Harmonium Evolution, Kenny Clarys. All rights reserved.<br>
+    The Harmonium Evolution is a trade name of Make Creations C.V.
+  </p>
+</footer>
+
+<script>
+/* ============================================================ CONFIG — fill these in */
+const CONFIG = {
+  // Vimeo masterclass embed URL (Player URL), e.g. https://player.vimeo.com/video/123456789
+  MASTERCLASS_SRC: "https://player.vimeo.com/video/1201738116?badge=0&autopause=0&player_id=0&app_id=58479",
+  // Your Calendly scheduling link
+  CALENDLY_URL: "https://calendly.com/harmoniumevolution/book-your-free-call-now-clone",
+  // Free starter lesson link (for route D)
+  FREE_LESSON_URL: "https://harmoniumevolution.com/free-lesson",
+  // Price guidance shown on the call pages
+  PRICE_AB: "between $500 and $800",
+  PRICE_C:  "between $1,500 and $3,500"
+};
+
+/* ---- read params from the quiz ---- */
+const P = new URLSearchParams(location.search);
+const route = (P.get("route") || "B").toUpperCase();
+const fn = (P.get("fn") || "").trim();
+const hi = fn ? (", " + fn) : "";
+
+const FRUST = {
+  start:"not knowing where and how to start",
+  stuck:"having learned a bit on your own but feeling stuck",
+  flat:"your playing sounding flat, with chords and rhythm that don't flow yet",
+  freedom:"wanting to play more freely, with melody and improvisation"
+};
+const GOAL = {
+  firstsongs:"playing your first chants, kirtans and bhajans",
+  confident:"playing confidently with other musicians and singers",
+  everysong:"figuring out any song you want, with confidence",
+  refinement:"playing with more refinement and creativity",
+  teaching:"teaching harmonium yourself"
+};
+const frust = FRUST[P.get("frustration")] || "where you are right now";
+const goal  = GOAL[P.get("goal")] || "where you want to be";
+
+/* ---- stars decoration ---- */
+(function(){const el=document.getElementById("decor");
+  [[6,10,16],[90,14,20],[82,82,13],[9,86,16],[50,5,11],[94,52,11]].forEach(([x,y,s])=>{
+    el.insertAdjacentHTML("beforeend",`<svg class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px" viewBox="0 0 24 24"><path d="M12 0c1 6 5 10 12 12-7 2-11 6-12 12-1-6-5-10-12-12 7-2 11-6 12-12z"/></svg>`);});
+})();
+
+/* ---- masterclass video ---- */
+document.getElementById("mc").src = CONFIG.MASTERCLASS_SRC;
+
+/* ---- content per route ---- */
+const CONTENT = {
+  A:{
+    headline:`You're at the perfect starting point${hi}.`,
+    intro:`Beginning the right way is the biggest head start you can give yourself. Most people spend years unlearning habits picked up from random videos, <b>you won't have to</b>. Watch your masterclass below, then book a free call and we'll map out your very first steps together.`,
+    call:true, price:CONFIG.PRICE_AB
+  },
+  B:{
+    headline:`You're not stuck because you lack talent${hi}. You're missing a clear path.`,
+    intro:`The place you're in, ${frust}, is the most common one, and the most fixable. It's almost never about talent, it's about the <b>order</b> you learn things in. Watch your masterclass below, then book a free call and we'll find your exact next step toward ${goal}.`,
+    call:true, price:CONFIG.PRICE_AB
+  },
+  C:{
+    headline:`You're ready for something more personal${hi}.`,
+    intro:`You're past the basics, and what you want now, ${goal}, grows fastest with guidance made just for you. Watch your masterclass below, then book a call and we'll see whether <b>private lessons</b> are the right fit.`,
+    call:true, price:CONFIG.PRICE_C
+  },
+  D:{
+    headline:`Here's a beautiful place to begin${hi}.`,
+    intro:`There's no rush at all. Start with your free masterclass below to get a real feel for playing. <b>You're on the list</b>, so I'll keep sending helpful guidance, and whenever you're ready, there's a simple way to go further.`,
+    call:false
+  }
+};
+const c = CONTENT[route] || CONTENT.B;
+
+document.getElementById("headline").innerHTML = c.headline;
+document.getElementById("intro").innerHTML = c.intro;
+
+/* ---- offer block ---- */
+const offer = document.getElementById("offer");
+if(c.call){
+  offer.innerHTML =
+    `<p class="price-note">Every player is in a different place, so there isn't one set price. On the call we look at what truly fits you, and find the best way to get there.</p>
+     <p class="price-big">Most students invest ${c.price}.</p>
+     <p class="price-sub">Payment plans available. We discuss the exact price together on the call.</p>
+     <div class="cal-wrap"><div class="calendly-inline-widget" data-url="${CONFIG.CALENDLY_URL}"></div></div>`;
+  const s=document.createElement("script");
+  s.src="https://assets.calendly.com/assets/external/widget.js"; s.async=true;
+  document.body.appendChild(s);
+}else{
+  offer.innerHTML =
+    `<p class="price-note">Your free masterclass is right above, enjoy it at your own pace. It's the best place to start, and it'll show you exactly how the harmonium works.</p>
+     <p class="price-sub" style="margin-top:14px;">You're on the list, so I'll keep sending helpful harmonium tips. Whenever you feel ready to go further, there'll be a simple way to start.</p>`;
+}
+</script>
+</body>
+</html>
