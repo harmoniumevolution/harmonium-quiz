@@ -54,9 +54,8 @@
 
   /* ---- intro (indigo) ---- */
   .intro-wrap{background:var(--indigo-bg);color:#fff;text-align:center;padding:4px clamp(22px,4vw,50px) 22px;}
-  .ititle{font-family:'Fira Sans',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,46px);line-height:1.06;margin:4px 0 16px;color:var(--gold);}
-  .greenline{font-family:'Inter',sans-serif;color:var(--bright-green);font-weight:600;font-size:clamp(16px,2.1vw,19px);line-height:1.5;text-align:center;max-width:52ch;margin:0 auto;}
-  .greenline .down{color:var(--bright-green);font-weight:700;font-size:1.3em;display:none;}
+  .ititle{font-family:'Fira Sans',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,46px);line-height:1.06;margin:4px 0 16px;color:var(--bright-green);}
+  .hook{font-family:'Inter',sans-serif;color:#fff;font-weight:400;font-size:clamp(17px,2.3vw,21px);line-height:1.6;text-align:center;max-width:54ch;margin:0 auto;}
 
   /* ---- quiz (cream) ---- */
   .quiz{background:var(--cream);text-align:center;padding:40px clamp(22px,4vw,50px) 10px;position:relative;}
@@ -100,6 +99,15 @@
   .btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
   .btn-ghost{font-family:'Actor',sans-serif;font-weight:500;background:transparent;border:0;color:var(--ink-soft);font-size:16px;padding:15px 6px;cursor:pointer;transition:color .15s;}
   .btn-ghost:hover{color:var(--ink);}
+  .row.center{justify-content:center;}
+  .row.center .btn-primary{margin-left:0;}
+  .btn-cta{text-transform:none;font-size:clamp(16px,2vw,19px);padding:20px 40px;white-space:normal;max-width:540px;line-height:1.3;animation:pulse 1.9s ease-in-out infinite;}
+  .btn-cta:hover{animation-play-state:paused;}
+  .back-sm{display:block;margin:18px auto 0;}
+  .q.result-big{font-size:clamp(30px,5vw,46px);}
+  .kenny-photo{display:block;width:100%;max-width:400px;height:auto;margin:6px auto 18px;border-radius:12px;}
+  .fine.privacy{margin-top:30px;max-width:52ch;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.035);}}
 
   .kenny{display:flex;align-items:center;gap:13px;background:rgba(0,139,157,.07);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 auto 22px;max-width:560px;text-align:left;}
   .kenny img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;border:2px solid rgba(232,185,112,.7);}
@@ -150,7 +158,6 @@
     .topimg{width:62%;max-width:250px;margin-bottom:10px;}
     .intro-wrap{padding:4px 16px 18px;}
     .ititle{font-size:clamp(26px,8vw,36px);margin:2px 0 12px;}
-    .greenline .down{display:inline;}
     .quiz{padding:34px 16px 8px;}
     .q-count{font-size:30px;display:flex;}
     h1.q{font-size:clamp(27px,7.5vw,34px);}
@@ -167,7 +174,7 @@
     .before-footer{display:block;width:100%;max-width:520px;margin:16px auto 0;height:auto;}
   }
 
-  @media (prefers-reduced-motion:reduce){.step{animation:none;}.dot{transition:none;}.btn-primary:hover,.opt:hover{transform:none;}}
+  @media (prefers-reduced-motion:reduce){.step{animation:none;}.dot{transition:none;}.btn-primary:hover,.opt:hover{transform:none;}.btn-cta{animation:none;}}
 </style>
 </head>
 <body>
@@ -304,21 +311,30 @@ const QARROWS = `<img class="qarrow left" src="${ARROW_SRC}" alt="" aria-hidden=
 /* ============================================================ QUESTIONS */
 function renderQuestion(){
   renderDots();
-  const Q=QUESTIONS[idx]; const multi=!!Q.multi;
+  const Q=QUESTIONS[idx]; const multi=!!Q.multi; const last=idx===TOTAL-1;
   const chosen=answers[Q.id]||(multi?[]:null);
   const wrap=document.createElement("div"); wrap.className="step";
   const intro = idx===0
     ? `<div class="intro-wrap">
          <h2 class="ititle">Harmonium Quiz</h2>
-         <p class="greenline">Answer the questions below and receive your personal player type and your best next step<span class="down"> ⤵</span></p>
+         <p class="hook">Discover your harmonium player type + the fastest way forward.<br>👇 Answer the questions below.</p>
        </div>`
     : "";
   const introFoot = idx===0
     ? `<div class="intro-foot">
-         <p class="mc-line">👉 By completing this quiz you will get clarity about your player type, your best next step, and receive access to the free Harmonium masterclass: "The 7 Principles of Harmonium Playing, 33min".</p>
+         <p class="mc-line">▶️ After completing this quiz, you will also get free access to the Harmonium Masterclass "The 7 Principles of Harmonium Playing", so you can get started today.</p>
          <p class="kenny-quote">"You don't need special talent, you need the right path and the right guidance."</p>
        </div>`
     : "";
+  const controls = last
+    ? `<div class="row center"><button class="btn-primary btn-cta" id="next" disabled>See my result →</button></div>
+       <button class="btn-ghost back-sm" id="back">← Back</button>`
+    : ((idx>0||multi)
+        ? `<div class="row">
+             ${idx>0?`<button class="btn-ghost" id="back">← Back</button>`:""}
+             ${multi?`<button class="btn-primary" id="next" disabled>Next →</button>`:""}
+           </div>`
+        : "");
   wrap.innerHTML=
     `${intro}
      <div class="quiz">${idx===0?QARROWS:""}
@@ -327,31 +343,31 @@ function renderQuestion(){
        <p class="sublabel ${multi?"all":"one"}">${multi?"Select 1 or more":"Select 1 reply that fits you best"}</p>
        ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
        <div class="options"></div>
-       <div class="row">
-         ${idx>0?`<button class="btn-ghost" id="back">← Back</button>`:""}
-         <button class="btn-primary" id="next" disabled>${idx===TOTAL-1?"See my result":"Next →"}</button>
-       </div>
+       ${controls}
      </div>
      ${introFoot}`;
   const box=wrap.querySelector(".options"); const next=wrap.querySelector("#next");
   const isSel=v=>multi?chosen.includes(v):chosen===v;
-  const refresh=()=>{const any=multi?(answers[Q.id]||[]).length>0:!!answers[Q.id];next.disabled=!any;};
+  const refresh=()=>{ if(next){const any=multi?(answers[Q.id]||[]).length>0:!!answers[Q.id];next.disabled=!any;} };
+  let advancing=false;
   Q.opts.forEach(([val,label])=>{
     const b=document.createElement("button");
     b.className="opt"+(multi?" multi":"")+(isSel(val)?" sel":"");
     b.innerHTML=`<span class="mark"></span><span>${label}</span>`;
     b.onclick=()=>{
+      if(advancing)return;
       if(multi){const arr=answers[Q.id]||[];
         if(arr.includes(val)){answers[Q.id]=arr.filter(x=>x!==val);b.classList.remove("sel");}
         else{answers[Q.id]=[...arr,val];b.classList.add("sel");}}
       else{answers[Q.id]=val;box.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));b.classList.add("sel");}
       if(!started){started=true;fire("QuizStart");} refresh();
+      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{idx++;renderQuestion();},1500); }
     };
     box.appendChild(b);
   });
   swap(wrap); refresh();
   const back=wrap.querySelector("#back"); if(back)back.onclick=()=>{idx--;renderQuestion();};
-  next.onclick=()=>{ if(idx===TOTAL-1)renderEmail(); else{idx++;renderQuestion();} };
+  if(next) next.onclick=()=>{ if(last)renderEmail(); else{idx++;renderQuestion();} };
 }
 
 /* ============================================================ EMAIL */
@@ -360,24 +376,18 @@ function renderEmail(){
   const wrap=document.createElement("div"); wrap.className="step";
   wrap.innerHTML=
     `<div class="quiz">
-       <span class="q-count">Last step</span>
-       <h1 class="q">Your result is ready.</h1>
-       <p class="sublabel one">Where should I send your personal plan and the free masterclass?</p>
-       <div class="kenny">
-         <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
-         <p>I read every answer myself and send you a plan that fits where you are. <b>Kenny</b></p>
-       </div>
-       <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" /></div>
-       <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" /></div>
+       <h1 class="q result-big">✔️ Your result is ready.</h1>
+       <p class="sublabel one">Where should I send you the free masterclass + your personal quiz results?</p>
+       <img class="kenny-photo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png" alt="Kenny Clarys" />
+       <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" placeholder="Type Your First Name" /></div>
+       <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="Type Your Best Email Address" /></div>
        <div class="field"><label for="wa">WhatsApp number <span style="color:var(--ink-faint)">(optional)</span></label><input id="wa" type="tel" autocomplete="tel" placeholder="+1 …" /></div>
-       <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me my plan, the masterclass and helpful lessons by email.</span></label>
+       <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me the masterclass, my results and helpful lessons by email.</span></label>
        <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
        <div class="err" id="err"></div>
-       <div class="row">
-         <button class="btn-ghost" id="back">← Back</button>
-         <button class="btn-primary" id="submit">Show my result</button>
-       </div>
-       <p class="fine">We respect your privacy. See our <a href="https://harmoniumevolution.com/privacy" target="_blank" rel="noopener">privacy policy</a>. Unsubscribe anytime.</p>
+       <div class="row center"><button class="btn-primary btn-cta" id="submit">Yes, I want to receive the masterclass and my results →</button></div>
+       <p class="fine privacy">🔒 Your information is 100% secure and we will never spam you. Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.</p>
+       <button class="btn-ghost back-sm" id="back">← Back</button>
      </div>`;
   swap(wrap);
   wrap.querySelector("#back").onclick=()=>{idx=TOTAL-1;renderQuestion();};
@@ -393,7 +403,7 @@ function submit(){
   const err=document.getElementById("err");
   if(!fn){err.textContent="Please add your first name.";return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent="Please enter a valid email.";return;}
-  if(!cEmail){err.textContent="Please tick the box so I can send your plan.";return;}
+  if(!cEmail){err.textContent="Please tick the box so I can send it to you.";return;}
   err.textContent=""; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
   const r=computeRoute(answers); const utm=getUTM();
   const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,whatsapp_consent:cWa&&!!wa,
