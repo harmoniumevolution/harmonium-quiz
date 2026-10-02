@@ -446,7 +446,6 @@ function postLead(p){
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify(p)}).catch(e=>console.error("Lead post failed (continuing):",e));
 }
-}
 function redirect(r,fn){
   const base=CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D;
   const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route});
