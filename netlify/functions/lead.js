@@ -138,7 +138,6 @@ exports.handler = async (event) => {
       { slug: "qualified", value: p.qualified ? "yes" : "no" },
     ];
 
-    // Get a contact id: find the existing one, or create a new one with email only.
     let contactId = null;
     const existing = await findContactByEmail(p.email);
     if (existing) {
@@ -158,8 +157,6 @@ exports.handler = async (event) => {
       }
     }
 
-    // Set all fields in one update. This is how Systeme stores custom field
-    // values, for both new and existing contacts.
     if (contactId) {
       const patch = await systeme("/contacts/" + contactId, {
         method: "PATCH",
@@ -167,6 +164,17 @@ exports.handler = async (event) => {
         body: JSON.stringify({ fields }),
       });
       if (!patch.ok) console.error("Field update failed:", patch.status, await patch.text());
+
+      // Phone number from the WhatsApp field, in its own update so a problem
+      // here cannot break the fields above. Optional, best effort.
+      if (p.whatsapp) {
+        const ph = await systeme("/contacts/" + contactId, {
+          method: "PATCH",
+          contentType: "application/merge-patch+json",
+          body: JSON.stringify({ fields: [{ slug: "phone_number", value: p.whatsapp }] }),
+        });
+        if (!ph.ok) console.error("Phone update failed:", ph.status, await ph.text());
+      }
 
       const tags = ["route-" + String(p.route || "").toLowerCase()];
       if (p.qualified) tags.push("qualified");
