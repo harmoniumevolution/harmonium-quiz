@@ -284,18 +284,17 @@ const QUESTIONS = [
     opts:[["yes","Yes"],["onway","It's on its way"],["notyet","Not yet"]]},
   { id:"time", q:"How much time can you realistically practice each week?",
     opts:[["under1","Under 1 hour"],["1to3","1-3 hours"],["3to5","3-5 hours"],["5plus","5+ hours"]]},
-  { id:"invest", q:"Learning this properly is an investment in yourself. What feels true right now?",
-    opts:[["free","I'm just looking for free tips for now"],["affordable","I'd like a cheap way to start"],
-          ["complete","I'm ready to invest in a complete course, from A to Z, to finally learn this the right way"],
-          ["guidance","I want private lessons, and I'm ready to invest in that"]]}
+    { id:"invest", q:"If Harmonium Evolution turns out to be the right fit for your playing, and you decided to go for it, what's true for you right now?",
+    opts:[["free","I'm just looking for free tips for now"],
+          ["ready","I'm ready to invest in learning this properly"]]}
 ];
 
 /* ============================================================ ROUTING (harmonium not used to qualify) */
 function computeRoute(a){
   const invest=a.invest, level=a.level;
-  const wantsToBuy=(invest==="complete"||invest==="guidance");
-  if(!wantsToBuy){return {route:"D",qualified:false,advanced:false};}
-  if(invest==="guidance"){return {route:"C",qualified:true,advanced:false};}
+  // Only "free tips for now" (or no answer) goes to D, not qualified.
+  if(invest!=="ready"){return {route:"D",qualified:false,advanced:false};}
+  // Ready to invest = qualified. Harmonium does not count. Route is A or B by level.
   const sm=Array.isArray(a.sixmonths)?a.sixmonths:(a.sixmonths?[a.sixmonths]:[]);
   const advanced = level==="over5" || a.place==="lead" || a.place==="teach" || sm.includes("teaching") || sm.includes("refinement");
   const beginner = (level==="none"||level==="under1") && a.musiccheck!=="correct";
