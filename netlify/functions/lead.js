@@ -1,6 +1,6 @@
 // netlify/functions/lead.js
 // Receives the quiz payload, stores it in Supabase, then creates or updates
-// the contact in Systeme with custom fields and the route tag.
+// the contact in Systeme and sets custom fields and the route tag.
 // Secrets live in Netlify environment variables, never in the repo:
 //   SYSTEME_API_KEY        (Systeme public API key)
 //   SUPABASE_SERVICE_KEY   (Supabase service_role key)
@@ -54,7 +54,6 @@ function sameEmail(a, b) {
   return (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
 }
 
-// In-memory cache for tag name -> id, survives warm invocations.
 let TAG_CACHE = null;
 
 async function systeme(path, opts = {}) {
@@ -84,8 +83,6 @@ async function findContactByEmail(email) {
   if (!res.ok) return null;
   const data = await res.json();
   const items = Array.isArray(data) ? data : data.items || [];
-  // Guard: only treat as a match if the email really matches, in case the
-  // filter is ignored and the list returns unrelated contacts.
   return items.find((c) => sameEmail(c.email, email)) || null;
 }
 
@@ -125,11 +122,12 @@ exports.handler = async (event) => {
     console.error("Supabase insert error:", e);
   }
 
-  // 2) Create or update the Systeme contact, best effort.
+  // 2) Create or find the Systeme contact, then set fields via PATCH.
   let systemeOk = false;
   try {
     const a = p.answers || {};
     const fields = [
+      { slug: "first_name", value: p.first_name || "" },
       { slug: "level", value: label("level", a.level) },
       { slug: "role", value: label("place", a.place) },
       { slug: "frustration", value: label("blocker", a.blocker) },
@@ -140,38 +138,36 @@ exports.handler = async (event) => {
       { slug: "qualified", value: p.qualified ? "yes" : "no" },
     ];
 
+    // Get a contact id: find the existing one, or create a new one with email only.
     let contactId = null;
     const existing = await findContactByEmail(p.email);
     if (existing) {
       contactId = existing.id;
-      await systeme("/contacts/" + contactId, {
-        method: "PATCH",
-        contentType: "application/merge-patch+json",
-        body: JSON.stringify({ fields }),
-      });
     } else {
-      const body = { email: p.email, firstName: p.first_name || "", fields };
-      if (p.whatsapp) body.phoneNumber = p.whatsapp;
-      const res = await systeme("/contacts", { method: "POST", body: JSON.stringify(body) });
+      const res = await systeme("/contacts", {
+        method: "POST",
+        body: JSON.stringify({ email: p.email }),
+      });
       if (res.ok) {
         const created = await res.json();
         contactId = created && created.id;
       } else {
         console.error("Create failed:", res.status, await res.text());
         const again = await findContactByEmail(p.email);
-        if (again) {
-          contactId = again.id;
-          await systeme("/contacts/" + contactId, {
-            method: "PATCH",
-            contentType: "application/merge-patch+json",
-            body: JSON.stringify({ fields }),
-          });
-        }
+        if (again) contactId = again.id;
       }
     }
 
-    // Tags: the route tag always, plus qualified and advanced where relevant.
+    // Set all fields in one update. This is how Systeme stores custom field
+    // values, for both new and existing contacts.
     if (contactId) {
+      const patch = await systeme("/contacts/" + contactId, {
+        method: "PATCH",
+        contentType: "application/merge-patch+json",
+        body: JSON.stringify({ fields }),
+      });
+      if (!patch.ok) console.error("Field update failed:", patch.status, await patch.text());
+
       const tags = ["route-" + String(p.route || "").toLowerCase()];
       if (p.qualified) tags.push("qualified");
       if (p.advanced) tags.push("advanced");
@@ -187,13 +183,12 @@ exports.handler = async (event) => {
           body: JSON.stringify({ tagId }),
         });
       }
-      systemeOk = true;
+      systemeOk = patch.ok;
     }
   } catch (e) {
     console.error("Systeme sync error:", e);
   }
 
-  // Always 200 so the quiz can redirect. The flags help you debug the test.
   return {
     statusCode: 200,
     headers: { ...cors, "Content-Type": "application/json" },
