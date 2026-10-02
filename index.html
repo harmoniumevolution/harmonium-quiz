@@ -248,9 +248,6 @@
 <script>
 /* ============================================================ CONFIG */
 const CONFIG = {
-  SUPABASE_URL: "https://amrvuxvlsebrznwcqhij.supabase.co",
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtcnZ1eHZsc2Vicnpud2NxaGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTAyMTMsImV4cCI6MjA5MTk4NjIxM30.yizmM8VnZ-wujPHNG6uIw5KrMMkKahS6lqv8rscsPHU",
-  SUPABASE_TABLE: "quiz_leads",
   RESULT_URLS: {
     A:"/result.html",
     B:"/result.html",
@@ -442,12 +439,13 @@ function submit(){
     utm_source:utm.utm_source,utm_campaign:utm.utm_campaign,utm_content:utm.utm_content,utm_medium:utm.utm_medium,
     fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href};
   fire("Lead"); if(r.qualified)fire("QualifiedLead");
-  saveToSupabase(payload).finally(()=>redirect(r,fn));
+    postLead(payload).finally(()=>redirect(r,fn));
 }
-function saveToSupabase(p){
-  return fetch(`${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.SUPABASE_TABLE}`,{method:"POST",
-    headers:{"apikey":CONFIG.SUPABASE_ANON_KEY,"Authorization":"Bearer "+CONFIG.SUPABASE_ANON_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
-    body:JSON.stringify(p)}).catch(e=>console.error("Supabase save failed (continuing):",e));
+function postLead(p){
+  return fetch("/.netlify/functions/lead",{method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(p)}).catch(e=>console.error("Lead post failed (continuing):",e));
+}
 }
 function redirect(r,fn){
   const base=CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D;
