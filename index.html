@@ -448,7 +448,7 @@ function postLead(p){
 }
 function redirect(r,fn){
   const base=CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D;
-  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route});
+  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route,harmonium:first(answers.harmonium)});
   location.href=base+(base.includes("?")?"&":"?")+q.toString();
 }
 function swap(node){stage.innerHTML="";stage.appendChild(node);window.scrollTo({top:0,behavior:"instant"});}
