@@ -6,20 +6,21 @@
 <title>Your Harmonium Result</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Actor&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&family=Tangerine:wght@700&display=swap" rel="stylesheet" />
 <style>
   :root{
     --teal-1:#12514a; --teal-2:#0f3d4c; --teal-3:#0c3144;
-    --gold:#E8B970; --gold-deep:#c9a84c;
+    --gold:#E8B970; --gold-deep:#c9a84c; --gold-ink2:#b08f3a;
     --action:#008B9D; --action-deep:#00A6BB;
-    --cream:#FBF6EC; --cream-2:#FFFCF6;
+    --cream:#FBF6EC; --cream-2:#FFFCF6; --white:#FFFFFF;
     --indigo:#0B0054; --indigo-bg:#0A1C50; --gold-ink:#1A0B3D;
-    --bright-green:#1FEEB8;
+    --bright-green:#1FEEB8; --green-ink:#0B8E6D;
     --ink:#123244; --ink-soft:#3c5c6e; --ink-faint:rgba(18,50,68,.5);
     --line:rgba(18,50,68,.14);
     box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
   *,*::before,*::after{box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:env(safe-area-inset-top,20px);}
   html,body{margin:0;min-height:100%;}
   body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
     background:
@@ -32,57 +33,113 @@
   .wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:6px 18px 40px;}
 
   .card{width:100%;max-width:760px;background:var(--cream);border:1px solid rgba(232,185,112,.5);border-radius:6px;overflow:hidden;box-shadow:0 30px 70px -28px rgba(0,0,0,.55);}
-  .topband{background:var(--indigo-bg);color:#fff;text-align:center;padding:14px clamp(22px,4vw,50px);}
-  .topband img{height:46px;width:auto;margin:0 auto;display:block;filter:brightness(0) invert(1);}
-  .quiz{background:var(--cream);text-align:center;padding:36px clamp(24px,5vw,56px) 36px;position:relative;}
+  .topband{background:var(--indigo-bg);color:#fff;text-align:center;padding:16px clamp(22px,4vw,50px) 20px;}
+  .topband img{height:46px;width:auto;margin:0 auto 10px;display:block;filter:brightness(0) invert(1);}
+  .result-eyebrow{font-family:'Fira Sans',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
+    font-size:clamp(20px,3.2vw,28px);line-height:1.1;color:var(--bright-green);margin:0;}
+
+  .quiz{background:var(--cream);text-align:center;padding:30px clamp(24px,5vw,56px) 36px;position:relative;}
   .quiz::before{content:"";position:absolute;top:-1px;left:0;width:100%;height:30px;background:var(--indigo-bg);clip-path:polygon(0 0,100% 0,0 100%);}
 
-  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:#b08f3a;margin:6px 0 14px;}
-  .eyebrow::before{content:"";width:26px;height:2px;background:#b08f3a;border-radius:2px;}
-  h1{font-family:'Fira Sans',sans-serif;font-weight:800;font-size:clamp(28px,4.4vw,40px);line-height:1.12;margin:0 0 16px;color:var(--action);}
-  .intro{font-size:clamp(16px,2vw,18px);color:var(--ink-soft);max-width:56ch;margin:0 auto 10px;}
-  .intro b{color:var(--ink);font-weight:600;}
+  .result-name{font-family:'Tangerine',cursive;font-weight:700;color:var(--action);
+    font-size:clamp(58px,13vw,104px);line-height:.92;margin:6px 0 2px;}
+  .result-tag{font-family:'Actor',sans-serif;color:var(--gold-ink2);
+    font-size:clamp(19px,2.8vw,26px);line-height:1.25;max-width:30ch;margin:0 auto 4px;}
 
-  .video{position:relative;width:100%;max-width:620px;margin:26px auto 8px;aspect-ratio:16/9;border-radius:12px;overflow:hidden;box-shadow:0 20px 44px -22px rgba(0,0,0,.6);background:#000;}
+  .intro-line{font-family:'Inter',sans-serif;font-weight:600;color:var(--ink);font-size:clamp(15px,1.9vw,17px);margin:14px auto 0;max-width:50ch;}
+
+  .video{position:relative;width:100%;max-width:620px;margin:16px auto 6px;aspect-ratio:16/9;border-radius:12px;overflow:hidden;box-shadow:0 20px 44px -22px rgba(0,0,0,.6);background:#000;}
   .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
-  .video-cap{font-size:14px;color:var(--ink-faint);margin:0 0 6px;}
+  .video-cap{font-size:14px;color:var(--ink-faint);margin:18px 0 6px;}
 
-  .offer{margin-top:30px;}
-  .price-note{font-size:clamp(16px,2vw,18px);color:var(--ink-soft);max-width:54ch;margin:0 auto 6px;}
-  .price-big{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(20px,2.6vw,26px);margin:6px 0 2px;}
-  .price-sub{font-size:14px;color:var(--ink-faint);margin:0 0 22px;}
+  /* content blocks */
+  .block{text-align:left;max-width:54ch;margin:28px auto 0;}
+  .block-title{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(18px,2.3vw,22px);margin:0 0 12px;text-align:center;}
+  .block ul{list-style:none;padding:0;margin:0;}
+  .block li{position:relative;padding:0 0 0 30px;margin:0 0 10px;font-size:clamp(15px,1.9vw,17px);color:var(--ink-soft);}
+  .familiar li::before{content:"";position:absolute;left:7px;top:10px;width:7px;height:7px;border-radius:50%;background:var(--gold-deep);}
+  .good li::before{content:"";position:absolute;left:8px;top:5px;width:7px;height:12px;border:2.5px solid var(--green-ink);border-top:0;border-left:0;transform:rotate(40deg);}
+  .lead{font-size:clamp(16px,2vw,18px);color:var(--ink);max-width:54ch;margin:16px auto 0;text-align:center;}
+  .lead.soft{color:var(--ink-soft);font-weight:400;}
+  .lead b{color:var(--ink);font-weight:600;}
 
-  .btn{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:clamp(16px,2vw,19px);letter-spacing:.04em;text-transform:none;
-    color:var(--gold-ink);background:linear-gradient(135deg,#F2C879 0%,#D99A45 100%);border:0;border-radius:3px;padding:20px 44px;
+  /* call block */
+  .callblock{margin-top:40px;}
+  .nextstep-title{font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--action);font-size:clamp(22px,3vw,30px);line-height:1.15;margin:0 0 10px;}
+  .nextstep-sub{font-size:clamp(16px,2vw,18px);color:var(--ink-soft);max-width:50ch;margin:0 auto 4px;}
+  .personal{max-width:52ch;margin:26px auto 0;text-align:left;background:var(--cream-2);border:1px solid rgba(232,185,112,.55);border-radius:14px;padding:22px 24px;box-shadow:0 14px 30px -22px rgba(0,0,0,.4);}
+  .personal p{font-size:clamp(15px,1.9vw,17px);color:var(--ink);line-height:1.6;margin:0;}
+  .sig{display:block;height:64px;width:auto;margin:10px 0 0 2px;}
+
+  .cal-steps{max-width:460px;margin:30px auto 10px;text-align:left;background:rgba(0,139,157,.06);border:1px solid rgba(0,139,157,.18);border-radius:14px;padding:18px 22px;}
+  .steps-title{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--ink);font-size:16px;margin:0 0 10px;text-align:center;}
+  .cal-steps ol{margin:0;padding-left:20px;}
+  .cal-steps li{font-size:15px;color:var(--ink-soft);margin:0 0 5px;}
+  .steps-hint{font-size:13.5px;color:var(--ink-faint);margin:10px 0 0;text-align:center;}
+
+  .cal-wrap{margin:12px auto 0;max-width:680px;scroll-margin-top:16px;}
+  .calendly-inline-widget{min-width:300px;height:700px;}
+
+  /* reviews */
+  .reviews{position:relative;z-index:1;width:100%;max-width:940px;margin:30px auto 0;background:var(--white);border:1px solid rgba(232,185,112,.4);border-radius:10px;padding:34px clamp(16px,3vw,34px) 34px;box-shadow:0 30px 70px -34px rgba(0,0,0,.5);}
+  .rev-head{text-align:center;max-width:60ch;margin:0 auto 22px;}
+  .rev-kicker{font-family:'Fira Sans',sans-serif;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--green-ink);font-size:13px;margin:0 0 6px;}
+  .rev-head h2{font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--ink);font-size:clamp(22px,3vw,30px);margin:0 0 8px;}
+  .rev-lede{font-size:15px;color:var(--ink-soft);margin:0;}
+  .statrow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 32px;margin:0 0 22px;}
+  .statrow .item{display:flex;flex-direction:column;align-items:center;line-height:1.1;}
+  .statrow .big{font-family:'Fira Sans',sans-serif;font-size:30px;color:var(--gold-deep);font-weight:800;}
+  .statrow .lbl{font-size:11.5px;letter-spacing:.03em;color:var(--ink-faint);text-transform:uppercase;}
+  .statrow .stars{color:var(--gold-deep);letter-spacing:2px;font-size:22px;}
+  .rev-badges{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:16px 24px;margin:0 0 24px;}
+  .rev-badges img{height:52px;width:auto;}
+  .feat-img{text-align:center;margin:0 auto 22px;}
+  .feat-img img{width:100%;max-width:460px;border-radius:12px;box-shadow:0 16px 34px -20px rgba(0,0,0,.45);}
+  .rev-grid{column-count:3;column-gap:12px;}
+  .rev-grid img{width:100%;margin:0 0 12px;border-radius:10px;box-shadow:0 10px 24px -16px rgba(0,0,0,.4);display:block;break-inside:avoid;}
+  .vids-head{text-align:center;margin:30px 0 16px;}
+  .vids-head h3{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(18px,2.3vw,22px);margin:0;}
+  .vids{display:flex;flex-direction:column;gap:12px;max-width:720px;margin:0 auto;}
+  .vids iframe{border-radius:12px;}
+  .vids-row{display:flex;gap:12px;}
+  .vids-row .vid{flex:1;}
+  .vid-wrap{position:relative;overflow:hidden;border-radius:12px;background:#000;}
+  .vid-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0;}
+  .ar-wide{padding-top:56.37%;}
+  .ar-tall{padding-top:177.78%;}
+  .ar-sq{padding-top:100%;max-width:420px;margin:0 auto;}
+  .rev-cta{text-align:center;margin:24px 0 0;}
+
+  /* buttons */
+  .btn{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:clamp(16px,2vw,19px);letter-spacing:.04em;
+    color:var(--gold-ink);background:linear-gradient(135deg,#F2C879 0%,#D99A45 100%);border:0;border-radius:3px;padding:20px 40px;
     display:inline-block;text-decoration:none;position:relative;overflow:hidden;cursor:pointer;
     box-shadow:0 14px 40px rgba(232,185,112,.45),0 0 0 1px rgba(255,250,247,.2) inset;transition:transform .15s ease,box-shadow .15s ease;}
   .btn::after{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transition:left .7s ease;}
   .btn:hover{transform:translateY(-3px);box-shadow:0 22px 56px rgba(232,185,112,.6),0 0 0 1px rgba(255,250,247,.3) inset;}
   .btn:hover::after{left:100%;}
+  .btn-secondary{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:15px;color:var(--action);background:transparent;border:1.5px solid var(--action);border-radius:3px;padding:13px 24px;display:inline-block;text-decoration:none;transition:background .15s,color .15s;}
+  .btn-secondary:hover{background:var(--action);color:#fff;}
+  .finalcta{width:100%;max-width:940px;margin:28px auto 0;text-align:center;}
+  .finalcta .lead-in{color:rgba(255,252,246,.92);font-size:clamp(16px,2vw,18px);margin:0 0 16px;}
 
-  .cal-wrap{margin:8px auto 0;max-width:680px;}
-  .calendly-inline-widget{min-width:300px;height:700px;}
-
-  /* social proof */
-  .proof{position:relative;z-index:1;width:100%;max-width:760px;margin:26px auto 0;text-align:center;color:rgba(255,252,246,.9);}
-  .stats{display:flex;flex-wrap:wrap;justify-content:space-evenly;align-items:center;gap:12px 30px;margin-bottom:22px;}
-  .stats .item{display:flex;flex-direction:column;line-height:1.1;}
-  .stats .big{font-family:'Fira Sans',sans-serif;font-size:34px;color:var(--gold);font-weight:800;}
-  .stats .lbl{font-size:12px;letter-spacing:.03em;color:rgba(255,252,246,.78);}
-  .stars{color:var(--gold);letter-spacing:2px;font-size:24px;}
-  .rev{width:100%;max-width:470px;border-radius:12px;box-shadow:0 16px 34px -18px rgba(0,0,0,.7);background:#fff;display:block;height:auto;margin:0 auto;}
-
+  /* social proof footer */
   .sitefooter{position:relative;z-index:1;width:100%;background:var(--cream);margin-top:34px;padding:34px 20px 30px;text-align:center;}
   .sitefooter .flogo{height:46px;width:auto;margin:0 auto 16px;display:block;}
   .flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:16px;font-size:14px;}
   .flinks a{color:var(--ink-soft);text-decoration:none;}
+  .flinks a:hover{color:var(--action-deep);}
   .legal{font-size:11.5px;color:var(--ink-faint);line-height:1.6;max-width:640px;margin:0 auto;}
 
-  @media (max-width:700px){
+  @media (max-width:760px){
     .wrap{padding:6px 6px 30px;}
     .card{border-radius:3px;}
-    .quiz{padding:28px 16px 30px;}
+    .quiz{padding:26px 16px 30px;}
+    .rev-grid{column-count:2;}
     .calendly-inline-widget{height:1000px;}
+  }
+  @media (max-width:420px){
+    .rev-grid{column-count:2;column-gap:8px;}
   }
 </style>
 </head>
@@ -93,27 +150,110 @@
   <div class="card">
     <div class="topband">
       <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+      <p class="result-eyebrow">Your personal result</p>
     </div>
     <div class="quiz">
-      <span class="eyebrow">Your personal result</span>
-      <h1 id="headline">Your result is ready.</h1>
-      <p class="intro" id="intro"></p>
+      <h1 class="result-name" id="name"></h1>
+      <p class="result-tag" id="tag"></p>
+      <p class="intro-line" id="introLine"></p>
 
       <p class="video-cap">▶️ Watch your free masterclass, "The 7 Principles of Harmonium Playing" (33 min)</p>
       <div class="video"><iframe id="mc" src="" title="Harmonium Masterclass" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
 
-      <div class="offer" id="offer"></div>
+      <div id="body"></div>
+
+      <div class="callblock" id="callblock" hidden>
+        <h2 class="nextstep-title">Let's find your next step together</h2>
+        <p class="nextstep-sub">Learning harmonium is personal, and it deserves personal attention. So the next step isn't a checkout page, it's a conversation.</p>
+
+        <div class="personal">
+          <p>Harmonium is a personal journey, and everyone's path is a little different. That's why I'd love to invite you for a short, free, no-pressure call. Bring your questions, and I'll walk you through the Harmonium Evolution course and private lessons, so together we can see what truly fits you.<br><br>Talk soon,</p>
+          <img class="sig" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba271ee3c1.98736640_34e5f4-6586-2f36-ff8e-3f548ed8dea_kenny_hand.png" alt="Kenny" />
+        </div>
+
+        <div class="cal-steps">
+          <p class="steps-title">Booking takes a minute</p>
+          <ol>
+            <li>Pick a day</li>
+            <li>Choose a time</li>
+            <li>Fill in your details</li>
+          </ol>
+          <p class="steps-hint">If the calendar doesn't fully show, just scroll down inside it.</p>
+        </div>
+
+        <div class="cal-wrap" id="book"><div class="calendly-inline-widget" data-url=""></div></div>
+      </div>
+
+      <div class="callblock" id="dblock" hidden></div>
     </div>
   </div>
 
-  <div class="proof">
-    <div class="stats">
-      <div class="item"><span class="stars">★★★★★</span><span class="lbl">4.9 RATING</span></div>
-      <div class="item"><span class="big">850+</span><span class="lbl">STUDENTS WORLDWIDE</span></div>
-      <div class="item"><span class="big">18</span><span class="lbl">YEARS OF TEACHING</span></div>
+  <!-- reviews (call routes only) -->
+  <section class="reviews" id="reviews">
+    <div class="rev-head">
+      <p class="rev-kicker">Loved worldwide</p>
+      <h2>What our students are saying</h2>
+      <p class="rev-lede">No matter your religion, background or tradition. This method is universal, and it works for everyone who is motivated and able to practice.</p>
     </div>
-    <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
-  </div>
+
+    <div class="statrow">
+      <div class="item"><span class="stars">★★★★★</span><span class="lbl">4.9 rating</span></div>
+      <div class="item"><span class="big">850+</span><span class="lbl">students worldwide</span></div>
+      <div class="item"><span class="big">18</span><span class="lbl">years of teaching</span></div>
+    </div>
+
+    <div class="rev-badges">
+      <a href="https://www.trustpilot.com/review/harmoniumevolution.com" target="_blank" rel="noopener"><img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe90179d4.83582318_trustpilotscore.png" alt="Trustpilot rating for The Harmonium Evolution"></a>
+      <a href="https://www.google.com/search?q=The+Harmonium+Evolution" target="_blank" rel="noopener"><img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2d631177.89511079_a77af22-ca56-02c7-481d-114cbc43_google_reviews2.png" alt="Google reviews rating for The Harmonium Evolution"></a>
+    </div>
+
+    <div class="feat-img">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo">
+    </div>
+
+    <div class="rev-grid">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8e8ad55.42774169_grietje.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8f0acc9.85756707_des.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe9055a69.42638833_nick.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8eedc00.45381784_olivia.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba30de1662.00810128_d7110aa-a626-a7a0-d864-b02b84ed083_Inara.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba330ea271.34959043_e072dd0-0d18-6d40-b0b8-dfbad8e41fcd_Ma_Giske_GOOGLE.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2fe06c82.02645840_be281bc-dab5-6dde-bb15-a8b4e7ef665_Nithi.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2f60dca4.89223581_b67186-b2f5-782c-33e2-4b0ebc5037e0_morgan_review_rood.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2fb0fb87.91259135_bbc3-08c2-137-cd5c-0020b7d8072_viveeka.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba29ba84f3.45971465_524f6b-eb47-fb87-f522-1a8131ded51_Mohan_google1.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2f273561.70433288_b1ebc0-f6d7-2be-7ce3-f3bbda604bc5_Gil.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2dcdacd4.92843819_ab31d58-136c-c331-6b4-cdf2cc0fa_Gayatri_review.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2e1a87d0.85975739_acca7ad-b25f-63d6-8eab-4f563a4652_review_matthia.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2bcee741.22737372_58807e3-1463-5ad-5b7-b0a66fa6adb3_Paul_google.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2c1f8f17.36221264_1585687-3bce-3382-abef-f5a644aa77e7_briand_review_rood.png" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2b706905.62333663_8505ebc-8c55-2b7-e550-f07ac2b5ba2_Sudhanva_google.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba297c4431.66248768_251b50-50af-6b6-c61b-7e672b08d7b_Chris_juist.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2911a049.79630209_165fcd7-35c6-47ea-4b71-24244322336_Anastasia_google.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28679636.80943978_80c33d3-6258-fa16-c4ce-25a7ef1806d_Alice.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2458f8c0.39081715_5cf14bd-63f8-e2db-7c28-11f04c0e5dd_Sanne.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba27a3b771.77861934_65a2253-eccf-2407-ad6b-f671a51c7_harridath.jpg" alt="Student review">
+      <img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba265798b5.13894365_8b4e1d-b056-ab0-b75-e0cd828715af_review_nikki_rodney.jpg" alt="Student review">
+    </div>
+
+    <div class="vids-head"><h3>Hear it from students, in their own words</h3></div>
+    <div class="vids">
+      <div class="vid-wrap ar-wide"><iframe src="https://player.vimeo.com/video/1230156281?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="Grietje"></iframe></div>
+      <div class="vids-row">
+        <div class="vid"><div class="vid-wrap ar-tall"><iframe src="https://player.vimeo.com/video/1230156278?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="Nick"></iframe></div></div>
+        <div class="vid"><div class="vid-wrap ar-tall"><iframe src="https://player.vimeo.com/video/1230156280?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="Sarvajna"></iframe></div></div>
+      </div>
+      <div class="vid-wrap ar-sq"><iframe src="https://player.vimeo.com/video/950494462?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share" referrerpolicy="strict-origin-when-cross-origin" title="Student testimonials"></iframe></div>
+    </div>
+
+    <div class="rev-cta">
+      <a href="https://www.trustpilot.com/review/harmoniumevolution.com" class="btn-secondary" target="_blank" rel="noopener">Read more reviews</a>
+    </div>
+  </section>
+
+  <!-- final CTA (call routes only) -->
+  <div class="finalcta" id="finalcta" hidden></div>
 </div>
 
 <footer class="sitefooter">
@@ -133,94 +273,146 @@
 </footer>
 
 <script>
-/* ============================================================ CONFIG — fill these in */
+/* ===== CONFIG ===== */
 const CONFIG = {
-  // Vimeo masterclass embed URL (Player URL), e.g. https://player.vimeo.com/video/123456789
   MASTERCLASS_SRC: "https://player.vimeo.com/video/1201738116?badge=0&autopause=0&player_id=0&app_id=58479",
-  // Your Calendly scheduling link
   CALENDLY_URL: "https://calendly.com/harmoniumevolution/book-your-free-call-now-clone",
-  // Free starter lesson link (for route D)
-  FREE_LESSON_URL: "https://harmoniumevolution.com/free-lesson",
-  // Price guidance shown on the call pages
-  PRICE_AB: "between $500 and $800",
-  PRICE_C:  "between $1,500 and $3,500"
+  GETTING_STARTED_URL: "https://harmoniumevolution.com/getting-started"
 };
 
-/* ---- read params from the quiz ---- */
+/* ===== read params ===== */
 const P = new URLSearchParams(location.search);
 const route = (P.get("route") || "B").toUpperCase();
 const fn = (P.get("fn") || "").trim();
 const hi = fn ? (", " + fn) : "";
 
-const FRUST = {
-  start:"not knowing where and how to start",
-  stuck:"having learned a bit on your own but feeling stuck",
-  flat:"your playing sounding flat, with chords and rhythm that don't flow yet",
-  freedom:"wanting to play more freely, with melody and improvisation"
-};
-const GOAL = {
-  firstsongs:"playing your first chants, kirtans and bhajans",
-  confident:"playing confidently with other musicians and singers",
-  everysong:"figuring out any song you want, with confidence",
-  refinement:"playing with more refinement and creativity",
-  teaching:"teaching harmonium yourself"
-};
-const frust = FRUST[P.get("frustration")] || "where you are right now";
-const goal  = GOAL[P.get("goal")] || "where you want to be";
-
-/* ---- stars decoration ---- */
+/* ===== stars decoration ===== */
 (function(){const el=document.getElementById("decor");
   [[6,10,16],[90,14,20],[82,82,13],[9,86,16],[50,5,11],[94,52,11]].forEach(([x,y,s])=>{
     el.insertAdjacentHTML("beforeend",`<svg class="star" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px" viewBox="0 0 24 24"><path d="M12 0c1 6 5 10 12 12-7 2-11 6-12 12-1-6-5-10-12-12 7-2 11-6 12-12z"/></svg>`);});
 })();
 
-/* ---- masterclass video ---- */
+/* ===== masterclass video ===== */
 document.getElementById("mc").src = CONFIG.MASTERCLASS_SRC;
 
-/* ---- content per route ---- */
+/* ===== content per route ===== */
 const CONTENT = {
   A:{
-    headline:`You're at the perfect starting point${hi}.`,
-    intro:`Beginning the right way is the biggest head start you can give yourself. Most people spend years unlearning habits picked up from random videos, <b>you won't have to</b>. Watch your masterclass below, then book a free call and we'll map out your very first steps together.`,
-    call:true, price:CONFIG.PRICE_AB
+    name:"The Inspired Beginner",
+    tag:`You're at the perfect starting point${hi}.`,
+    introLine:"Watch your free masterclass first, then let's talk.",
+    call:true,
+    familiar:{
+      title:"This might feel familiar",
+      items:[
+        "You love the sound of the harmonium and feel drawn to it",
+        "You're ready to start, but YouTube only leaves you confused",
+        "You wonder, can I really learn this? Is it for me?"
+      ]
+    },
+    bridge:"You don't need special talent. You need the right guidance and a clear first step, so you never have to unlearn bad habits later.",
+    good:{
+      title:"Here's the good news",
+      items:[
+        "Begin the right way, from your very first notes",
+        "Understand the instrument instead of guessing",
+        "Play your first chants with real confidence",
+        "Build a foundation that lasts, step by step"
+      ]
+    }
   },
   B:{
-    headline:`You're not stuck because you lack talent${hi}. You're missing a clear path.`,
-    intro:`The place you're in, ${frust}, is the most common one, and the most fixable. It's almost never about talent, it's about the <b>order</b> you learn things in. Watch your masterclass below, then book a free call and we'll find your exact next step toward ${goal}.`,
-    call:true, price:CONFIG.PRICE_AB
-  },
-  C:{
-    headline:`You're ready for something more personal${hi}.`,
-    intro:`You're past the basics, and what you want now, ${goal}, grows fastest with guidance made just for you. Watch your masterclass below, then book a call and we'll see whether <b>private lessons</b> are the right fit.`,
-    call:true, price:CONFIG.PRICE_C
+    name:"The Rising Practitioner",
+    tag:`You're not stuck because you lack talent${hi}. You're missing a clear path.`,
+    introLine:"Watch your free masterclass first, then let's talk.",
+    call:true,
+    familiar:{
+      title:"This might feel familiar",
+      items:[
+        "You've played and explored, but it doesn't fully click yet",
+        "You press the right keys, without really knowing why",
+        "Playing and singing together feels like too much at once",
+        "You keep coming back to the same few songs"
+      ]
+    },
+    bridge:"What you feel inside, the devotion and the music, doesn't quite reach your hands yet. That's not a talent problem. You simply never learned in the right order.",
+    good:{
+      title:"Here's the good news",
+      items:[
+        "Clean up your technique and fix hidden habits",
+        "Understand the music system instead of memorizing",
+        "Play and sing together with ease",
+        "Grow your repertoire, and play with real devotion"
+      ]
+    }
   },
   D:{
-    headline:`Here's a beautiful place to begin${hi}.`,
-    intro:`There's no rush at all. Start with your free masterclass below to get a real feel for playing. <b>You're on the list</b>, so I'll keep sending helpful guidance, and whenever you're ready, there's a simple way to go further.`,
-    call:false
+    name:"The Curious Explorer",
+    tag:`Here's a beautiful place to begin${hi}.`,
+    introLine:"",
+    call:false,
+    free:{
+      lead:"There's no rush at all. Enjoy your free masterclass above, at your own pace.",
+      note:"And when you're ready for a gentle, guided first step, here's the easiest way in."
+    },
+    offer:{
+      title:"Start Your Evolution",
+      sub:"A simple, step-by-step intro course that gets you playing the right way, from day one.",
+      items:[
+        "Play your first chants within a few days",
+        "Understand the basics instead of guessing",
+        "No harmonium yet? You can start on a simple keyboard",
+        "One-time payment, lifetime access"
+      ],
+      btn:"GET STARTED WITH HARMONIUM, ONLY $47 →"
+    }
   }
 };
+
 const c = CONTENT[route] || CONTENT.B;
 
-document.getElementById("headline").innerHTML = c.headline;
-document.getElementById("intro").innerHTML = c.intro;
+/* ===== render hero ===== */
+document.getElementById("name").textContent = c.name;
+document.getElementById("tag").innerHTML = c.tag;
+const introEl = document.getElementById("introLine");
+if(c.introLine){ introEl.textContent = c.introLine; } else { introEl.hidden = true; }
 
-/* ---- offer block ---- */
-const offer = document.getElementById("offer");
+/* ===== render body ===== */
+function list(cls, items){
+  return `<ul class="${cls}">` + items.map(i=>`<li>${i}</li>`).join("") + `</ul>`;
+}
+const body = document.getElementById("body");
 if(c.call){
-  offer.innerHTML =
-    `<p class="price-note">Every player is in a different place, so there isn't one set price. On the call we look at what truly fits you, and find the best way to get there.</p>
-     <p class="price-big">Most students invest ${c.price}.</p>
-     <p class="price-sub">Payment plans available. We discuss the exact price together on the call.</p>
-     <div class="cal-wrap"><div class="calendly-inline-widget" data-url="${CONFIG.CALENDLY_URL}"></div></div>`;
+  body.innerHTML =
+    `<div class="block familiar"><p class="block-title">${c.familiar.title}</p>${list("", c.familiar.items)}</div>` +
+    `<p class="lead soft">${c.bridge}</p>` +
+    `<div class="block good"><p class="block-title">${c.good.title}</p>${list("", c.good.items)}</div>`;
+}else{
+  body.innerHTML =
+    `<p class="lead"><b>${c.free.lead}</b></p>` +
+    `<p class="lead soft">${c.free.note}</p>`;
+}
+
+/* ===== call-only sections ===== */
+const finalcta = document.getElementById("finalcta");
+if(c.call){
+  document.querySelector("#book .calendly-inline-widget").setAttribute("data-url", CONFIG.CALENDLY_URL);
   const s=document.createElement("script");
   s.src="https://assets.calendly.com/assets/external/widget.js"; s.async=true;
   document.body.appendChild(s);
+  document.getElementById("callblock").hidden = false;
+  finalcta.innerHTML = `<p class="lead-in">Ready to find your next step?</p><a href="#book" class="btn">BOOK YOUR CALL WITH KENNY →</a>`;
 }else{
-  offer.innerHTML =
-    `<p class="price-note">Your free masterclass is right above, enjoy it at your own pace. It's the best place to start, and it'll show you exactly how the harmonium works.</p>
-     <p class="price-sub" style="margin-top:14px;">You're on the list, so I'll keep sending helpful harmonium tips. Whenever you feel ready to go further, there'll be a simple way to start.</p>`;
+  const o = c.offer;
+  document.getElementById("dblock").innerHTML =
+    `<h2 class="nextstep-title">${o.title}</h2>` +
+    `<p class="nextstep-sub">${o.sub}</p>` +
+    `<div class="block good" style="max-width:46ch;margin:18px auto 0;">${list("", o.items)}</div>` +
+    `<div style="margin-top:24px"><a href="${CONFIG.GETTING_STARTED_URL}" class="btn">${o.btn}</a></div>`;
+  document.getElementById("dblock").hidden = false;
+  finalcta.innerHTML = `<p class="lead-in">Ready to start playing?</p><a href="${CONFIG.GETTING_STARTED_URL}" class="btn">${o.btn}</a>`;
 }
+finalcta.hidden = false;
 </script>
 </body>
 </html>
