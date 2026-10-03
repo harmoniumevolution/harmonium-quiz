@@ -14,7 +14,7 @@
     --action:#008B9D; --action-deep:#00A6BB;
     --cream:#FBF6EC; --cream-2:#FFFCF6; --white:#FFFFFF;
     --indigo:#0B0054; --indigo-bg:#0A1C50; --gold-ink:#1A0B3D;
-    --royal:#0015cf; --royal-soft:#eef1fd; --sky:#3b82f6; --book-bg:#75F1FF;
+    --royal:#0015cf; --royal-soft:#eef1fd; --sky:#3b82f6; --book-bg:#FFEC99;
     --bright-green:#1FEEB8; --green-ink:#0B8E6D;
     --ink:#123244; --ink-soft:#3c5c6e; --ink-faint:rgba(18,50,68,.5);
     --line:rgba(18,50,68,.14);
@@ -48,6 +48,9 @@
     font-size:clamp(19px,2.6vw,25px);line-height:1.3;max-width:34ch;margin:16px auto 0;}
   .divider{width:56px;height:2px;background:var(--gold-deep);border-radius:2px;margin:24px auto 0;opacity:.8;}
   .inbox-line{font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--ink);font-size:clamp(16px,2.1vw,19px);line-height:1.3;max-width:42ch;margin:22px auto 0;}
+  .inbox-img{display:block;width:100%;max-width:240px;margin:18px auto 0;border-radius:12px;box-shadow:0 12px 28px -18px rgba(0,0,0,.5);}
+  .mc-label{text-align:center;font-family:'Fira Sans',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--action);font-size:13px;margin:30px 0 10px;}
+  .bridge-italic{font-style:italic;}
   #recognition .block{margin-top:34px;}
   .step-arrow{text-align:center;margin:14px auto 0;}
   .step-arrow img{height:104px;width:auto;}
@@ -55,7 +58,7 @@
   .post-cta.shown{display:block;}
   .post-cta.call-cta.shown{display:none;}
 
-  .step-line{width:100%;max-width:560px;height:1px;background:var(--line);margin:44px auto 0;}
+  hr.step-hr{border:0;border-top:1px solid var(--line);width:100%;max-width:560px;margin:46px auto 0;}
   .steps{display:inline-block;text-align:left;position:relative;margin:32px auto 0;}
   .step{font-family:'Inter',sans-serif;font-size:clamp(15px,1.95vw,17.5px);color:var(--ink);margin:0 0 8px;}
   .step b{font-weight:700;color:var(--ink);}
@@ -64,7 +67,7 @@
   .arr path{stroke:var(--green-ink);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
   .steps .arr-sm{position:absolute;right:-56px;top:50%;transform:translateY(-50%);height:52px;width:auto;}
 
-  .video-cap{font-size:clamp(13.5px,1.7vw,15px);color:var(--ink-faint);margin:10px 0 8px;}
+  .video-cap{font-size:clamp(14px,1.8vw,16px);font-weight:600;color:#0075E3;margin:20px auto 6px;max-width:46ch;}
   .video{position:relative;width:100%;max-width:560px;margin:0 auto 6px;aspect-ratio:16/9;border-radius:12px;overflow:hidden;box-shadow:0 20px 44px -22px rgba(0,0,0,.6);background:#000;}
   .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
 
@@ -94,11 +97,12 @@
   .personal p{font-size:clamp(15px,1.95vw,17px);color:var(--ink);line-height:1.6;margin:0;}
   .sig{display:block;height:62px;width:auto;margin:8px 0 0 2px;}
 
-  .cal-steps{max-width:640px;margin:40px auto 0;text-align:left;background:var(--book-bg);border:1px solid rgba(0,110,130,.45);border-radius:16px;padding:28px 32px;}
+  .cal-steps{max-width:640px;margin:40px auto 28px;text-align:left;background:var(--book-bg);border:1px solid rgba(201,168,76,.55);border-radius:16px;padding:28px 32px;}
   .steps-title{font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--indigo-bg);font-size:clamp(18px,2.3vw,22px);margin:0 0 12px;text-align:center;}
   .cal-steps ol{margin:0;padding-left:22px;}
   .cal-steps li{font-size:clamp(15px,1.9vw,16.5px);color:var(--ink);margin:0 0 7px;}
   .steps-hint{font-size:14px;font-style:italic;color:var(--ink-soft);margin:12px 0 0;text-align:center;}
+  .cal-steps .qa-img{display:block;width:100%;max-width:400px;margin:18px auto 0;border-radius:10px;}
 
   .book-arrow{position:relative;z-index:3;text-align:left;padding-left:48px;margin:26px 0 -30px;}
   .book-arrow .arr path{stroke:var(--green-ink);stroke-width:3.4;}
@@ -121,7 +125,7 @@
 
   .rev-badges{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:18px 28px;
     margin:0;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
-  .rev-badges img{height:56px;width:auto;}
+  .rev-badges img{height:70px;width:auto;}
   .feat-img{text-align:center;margin:8px auto 0;}
   .feat-img img{width:100%;max-width:340px;border-radius:12px;box-shadow:0 16px 34px -20px rgba(0,0,0,.45);}
 
@@ -167,7 +171,7 @@
     .topband img{height:34px;margin-bottom:16px;}
     .result-eyebrow{font-size:27px;}
     .quiz{padding:28px 16px 32px;}
-    .result-name{font-size:clamp(40px,11vw,52px);margin-top:14px;}
+    .result-name{font-size:clamp(46px,13vw,60px);margin-top:14px;}
     .result-tag{font-size:22px;max-width:30ch;margin-top:18px;}
     .result-name{margin-bottom:0;}
     .steps{margin-top:24px;}
@@ -190,7 +194,9 @@
     .rev-head h2{font-size:30px;}
     .rev-kicker{font-size:16px;}
     .rev-lede{font-size:15.5px;}
-    .rev-badges img{height:46px;}
+    .rev-badges img{height:auto;}
+    .badge-tp{width:80%;}
+    .badge-gg{height:62px;width:auto;}
     .rev-grid{column-count:1;column-gap:0;}
     .vids-head h3{font-size:24px;}
     .finalcta{margin-top:54px;padding-bottom:90px;}
@@ -200,6 +206,7 @@
     .inbox-line{font-size:18px;}
     .step-arrow img{height:90px;}
     .post-cta.call-cta.shown{display:block;}
+    .inbox-img{max-width:190px;}
   }
 </style>
 </head>
@@ -216,18 +223,19 @@
       <h1 class="result-name" id="name"></h1>
       <p class="result-tag" id="tag"></p>
       <div class="divider"></div>
-      <p class="inbox-line">👉 Check your inbox for your full, detailed results.</p>
+      <p class="inbox-line">👉 Check your inbox (and spam folder) for your full, detailed results.</p>
+      <p class="video-cap">▶️ Watch the free Harmonium masterclass below: "The 7 Principles of Harmonium Playing" (33 min)</p>
+      <img class="inbox-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2f6dbe88.44675073_ba2e68-588a-cdbf-ca14-8d8f0423143_9ded3878-cc1d-4706-8e1a-cc781fe6b4fa.jpg" alt="" />
 
       <div id="recognition"></div>
 
-      <div class="step-line" id="stepLine" hidden></div>
+      <hr class="step-hr" id="stepHr" hidden>
       <div class="steps" id="steps" hidden>
-        <p class="step"><span class="sn">Step 1:</span> Watch the free masterclass on this page below</p>
+        <p class="step"><span class="sn">Step 1:</span> Watch the Harmonium masterclass 👇</p>
         <p class="step"><span class="sn">Step 2:</span> Book your call and let's talk</p>
       </div>
-      <div class="step-arrow" id="stepArrow" hidden><img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ac0f83a104f01.53971774_arrow.png" alt="" aria-hidden="true"></div>
 
-      <p class="video-cap">▶️ Watch your free masterclass, "The 7 Principles of Harmonium Playing" (33 min)</p>
+      <p class="mc-label">- Harmonium Masterclass -</p>
       <div class="video"><iframe id="mc" src="" title="Harmonium Masterclass" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
 
       <div class="post-cta" id="postCta"></div>
@@ -259,6 +267,7 @@
             <li>Fill in your details and answer the questions</li>
           </ol>
           <p class="steps-hint">If the calendar doesn't fully show, just scroll down inside it.</p>
+          <img class="qa-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ac18a22cca464.07500295_qacall.jpg" alt="" />
         </div>
 
         <div class="cal-wrap" id="book"><div class="calendly-inline-widget" data-url=""></div></div>
@@ -277,8 +286,8 @@
     </div>
 
     <div class="rev-badges">
-      <a href="https://www.trustpilot.com/review/harmoniumevolution.com" target="_blank" rel="noopener"><img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe90179d4.83582318_trustpilotscore.png" alt="Trustpilot rating for The Harmonium Evolution"></a>
-      <a href="https://www.google.com/search?q=The+Harmonium+Evolution" target="_blank" rel="noopener"><img src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2d631177.89511079_a77af22-ca56-02c7-481d-114cbc43_google_reviews2.png" alt="Google reviews rating for The Harmonium Evolution"></a>
+      <a href="https://www.trustpilot.com/review/harmoniumevolution.com" target="_blank" rel="noopener"><img class="badge-tp" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe90179d4.83582318_trustpilotscore.png" alt="Trustpilot rating for The Harmonium Evolution"></a>
+      <a href="https://www.google.com/search?q=The+Harmonium+Evolution" target="_blank" rel="noopener"><img class="badge-gg" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2d631177.89511079_a77af22-ca56-02c7-481d-114cbc43_google_reviews2.png" alt="Google reviews rating for The Harmonium Evolution"></a>
     </div>
 
     <div class="statrow">
@@ -445,10 +454,10 @@ const finalcta = document.getElementById("finalcta");
 
 if(c.call){
   recognition.innerHTML =
-    `<div class="block familiar"><p class="block-title">${c.familiar.title}</p>${list(c.familiar.items)}</div>` +
-    `<p class="lead soft">${c.bridge}</p>`;
+    `<div class="block familiar">${list(c.familiar.items)}</div>` +
+    `<p class="lead soft bridge-italic">${c.bridge}</p>`;
   document.getElementById("steps").hidden = false;
-  document.getElementById("stepArrow").hidden = false;
+  document.getElementById("stepHr").hidden = false;
   body.innerHTML = `<div class="block good"><p class="block-title">${c.good.title}</p>${list(c.good.items)}</div>`;
   postCta.innerHTML = `<a href="#book" class="btn">BOOK YOUR CALL WITH KENNY →</a>`;
   postCta.classList.add("call-cta");
