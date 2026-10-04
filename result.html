@@ -50,7 +50,7 @@
   .inbox-line{font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--ink);font-size:clamp(16px,2.1vw,19px);line-height:1.3;max-width:42ch;margin:22px auto 0;}
   .inbox-img{display:block;width:100%;max-width:240px;margin:18px auto 0;border-radius:12px;box-shadow:0 12px 28px -18px rgba(0,0,0,.5);}
   .mc-label{text-align:center;font-family:'Fira Sans',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--action);font-size:13px;margin:30px 0 10px;}
-  .bridge-italic{font-style:italic;}
+  .bridge-italic{font-style:italic;margin-top:26px;}
   #recMain .block{margin-top:34px;}
   #recTop{margin-top:4px;}
   #recTop .block{margin-top:18px;}
@@ -84,10 +84,12 @@
   .lead.soft{color:var(--ink-soft);font-weight:400;}
   .lead b{color:var(--ink);font-weight:600;}
   .list-intro{max-width:54ch;margin:18px auto 8px;text-align:left;font-size:clamp(15.5px,1.95vw,17px);color:var(--ink);}
-  .three-things{max-width:54ch;margin:0 auto;padding-left:24px;text-align:left;}
-  .three-things li{font-size:clamp(15.5px,1.95vw,17px);color:var(--ink-soft);margin-bottom:6px;}
+  .three-things{list-style:none;max-width:54ch;margin:6px auto 0;padding-left:0;text-align:left;counter-reset:tt;}
+  .three-things li{counter-increment:tt;position:relative;padding-left:54px;min-height:40px;display:flex;align-items:center;font-size:clamp(15.5px,1.95vw,17px);color:var(--ink);margin-bottom:12px;}
+  .three-things li::before{content:counter(tt);position:absolute;left:0;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:#10B981;color:var(--cream);font-family:'Fira Sans',sans-serif;font-weight:800;font-size:19px;display:flex;align-items:center;justify-content:center;}
+  .mid-hr{border:0;border-top:1px solid var(--line);max-width:440px;margin:22px auto;}
   .rm-line{margin-top:16px;}
-  .block.good .goodlead{margin-top:0;}
+  .block.good .goodlead{margin-top:0;margin-bottom:18px;}
   .block.good .arrow-list{list-style:none;padding:0;margin:6px auto 0;max-width:54ch;}
   .block.good .arrow-list li{padding-left:2px;color:var(--ink-soft);margin-bottom:8px;}
   .block.good .arrow-list li::before{content:none;}
@@ -404,7 +406,8 @@ document.getElementById("mc").src = CONFIG.MASTERCLASS_SRC;
 
 /* ===== content per route ===== */
 const THREE = `<p class="list-intro"><b>What you need is three things:</b></p><ol class="three-things"><li>The desire to learn</li><li>The right guidance from a teacher/course</li><li>Action to reach your destination</li></ol>`;
-const READMORE = `<p class="lead soft rm-line">Read more in the email, and watch the masterclass below.</p>`;
+const READMORE = `<p class="lead rm-line"><b>Read more in the email, and watch the masterclass below.</b></p>`;
+const MIDHR = `<hr class="mid-hr">`;
 const CONTENT = {
   A:{
     name:"The Inspired Beginner",
@@ -412,7 +415,7 @@ const CONTENT = {
     call:true,
     familiar:["You love the sound of the harmonium and feel drawn to it","You're ready to start, but YouTube only leaves you confused","You wonder, can I really learn this? Is it for me?"],
     bridge:"You don't need special talent. You need the right guidance and a clear first step, so you never have to unlearn bad habits later.",
-    afterBridge: THREE + READMORE,
+    afterBridge: MIDHR + THREE + READMORE,
     steps:[["Step 1:","Watch the Harmonium masterclass 👇"],["Step 2:","Book your call and let's talk"]],
     good:`<div class="block good"><p class="block-title">The good news?</p><p class="lead goodlead"><b>With the right structure, everything becomes simple!</b></p><ul><li>Begin the right way, from your very first notes</li><li>Understand the instrument instead of guessing</li><li>Play your first chants with real confidence</li><li>Build a foundation that lasts, step by step</li></ul></div>`
   },
@@ -422,7 +425,7 @@ const CONTENT = {
     call:true,
     familiar:["You've played and explored, but it doesn't fully click yet","You press the right keys, without really knowing why","Playing and singing together feels like too much at once","You keep coming back to the same few songs"],
     bridge:"What you feel inside, the devotion and the music, doesn't quite reach your hands yet. That's not a talent problem. You simply never learned in the right order.",
-    afterBridge: THREE + READMORE,
+    afterBridge: MIDHR + THREE + READMORE,
     steps:[["Step 1:","Watch the Harmonium masterclass 👇"],["Step 2:","Book your call and let's talk"]],
     good:`<div class="block good"><p class="block-title">The good news?</p>`+
       `<p class="lead goodlead">👉 You already have some experience. Now you just need clarity and structure.</p>`+
@@ -438,7 +441,7 @@ const CONTENT = {
     tag:`Here's a beautiful place to begin${hi}.`,
     call:false,
     recTop:`<div class="block"><p class="list-intro"><b>Perhaps you have some doubts:</b></p><ul class="familiar"><li>YouTube is confusing</li><li>Am I able to learn Harmonium? Will it work for me?</li><li>Is Harmonium something for me? Will I like to play it?</li></ul></div>`+
-      `<p class="lead soft"><b>You don't need special music talent.</b></p>`+ THREE,
+      `<p class="lead soft"><b>You don't need special music talent.</b></p>`+ MIDHR + THREE,
     steps:[["Step 1:","Watch the Harmonium masterclass 👇"],["Step 2:","Begin with clarity and structure: Getting Started with Harmonium, the perfect introduction course for only $47"]],
     bodyD:`<p class="lead"><b>Let's build confidence together.</b></p>`+
       `<p class="lead soft">Get rid of all confusion so you can start correctly.</p>`+
