@@ -7,6 +7,12 @@
 
 const SYSTEME_BASE = "https://api.systeme.io/api";
 const SUPABASE_URL = "https://amrvuxvlsebrznwcqhij.supabase.co";
+const crypto = require("crypto");
+
+// SHA-256 for Conversions API user data (email, first name). Normalized: trimmed + lowercased.
+function sha256(s) {
+  return crypto.createHash("sha256").update(String(s || "").trim().toLowerCase()).digest("hex");
+}
 
 // Answer code -> readable English label, per quiz question id.
 const LABELS = {
@@ -197,9 +203,50 @@ exports.handler = async (event) => {
     console.error("Systeme sync error:", e);
   }
 
+  // 3) Conversions API (server-side). Mirrors the browser Lead/QualifiedLead with the
+  //    SAME event_id so Meta deduplicates. Secrets from env: META_PIXEL_ID, META_CAPI_TOKEN.
+  //    Best effort; never blocks the response.
+  let capiOk = false;
+  try {
+    const PIXEL_ID = process.env.META_PIXEL_ID;
+    const TOKEN = process.env.META_CAPI_TOKEN;
+    if (PIXEL_ID && TOKEN && p.email) {
+      const h = event.headers || {};
+      const ip = (h["x-nf-client-connection-ip"] || (h["x-forwarded-for"] || "").split(",")[0] || "").trim();
+      const ua = h["user-agent"] || "";
+      const user_data = {
+        em: [sha256(p.email)],
+        fn: p.first_name ? [sha256(p.first_name)] : undefined,
+        fbp: p.fbp || undefined,
+        fbc: p.fbc || undefined,
+        client_ip_address: ip || undefined,
+        client_user_agent: ua || undefined,
+      };
+      const base = {
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: p.event_id,
+        action_source: "website",
+        event_source_url: p.page_url || undefined,
+        user_data,
+      };
+      const events = [Object.assign({ event_name: "Lead" }, base)];
+      if (p.qualified) events.push(Object.assign({ event_name: "QualifiedLead" }, base));
+      const capi = await fetch(
+        "https://graph.facebook.com/v21.0/" + PIXEL_ID + "/events?access_token=" + encodeURIComponent(TOKEN),
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: events }) }
+      );
+      capiOk = capi.ok;
+      if (!capi.ok) console.error("CAPI failed:", capi.status, await capi.text());
+    } else if (!PIXEL_ID || !TOKEN) {
+      console.error("CAPI skipped: set META_PIXEL_ID and META_CAPI_TOKEN in Netlify env vars");
+    }
+  } catch (e) {
+    console.error("CAPI error:", e);
+  }
+
   return {
     statusCode: 200,
     headers: { ...cors, "Content-Type": "application/json" },
-    body: JSON.stringify({ ok: true, supabase: supabaseOk, systeme: systemeOk }),
+    body: JSON.stringify({ ok: true, supabase: supabaseOk, systeme: systemeOk, capi: capiOk }),
   };
 };
