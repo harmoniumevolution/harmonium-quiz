@@ -225,6 +225,12 @@
     .post-cta.call-cta.shown{display:block;}
     .inbox-img{max-width:190px;}
   }
+  .sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;justify-content:center;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(10,28,80,.94);box-shadow:0 -10px 28px -14px rgba(0,0,0,.6);}
+  .sticky-cta.shown{display:flex;}
+  .sticky-cta .btn{padding:14px 30px;font-size:clamp(15px,2vw,18px);box-shadow:0 10px 30px rgba(232,185,112,.45);}
+  body.has-sticky{padding-bottom:84px;}
 </style>
 </head>
 <body>
@@ -241,21 +247,21 @@
       <p class="result-tag" id="tag"></p>
       <div class="divider"></div>
       <p class="inbox-line">👉 Check your inbox (and spam folder) for your full, detailed results.</p>
+
+      <hr class="step-hr" id="stepHr" hidden>
+      <div class="steps" id="steps" hidden></div>
+
       <p class="video-cap">▶️ Watch the free Harmonium masterclass below: "The 7 Principles of Harmonium Playing" (33 min)</p>
+      <p class="mc-label">- Harmonium Masterclass -</p>
+      <div class="video"><iframe id="mc" src="" title="Harmonium Masterclass" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+
+      <div class="post-cta" id="postCta"></div>
 
       <div id="recTop"></div>
 
       <img class="inbox-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba2f6dbe88.44675073_ba2e68-588a-cdbf-ca14-8d8f0423143_9ded3878-cc1d-4706-8e1a-cc781fe6b4fa.jpg" alt="" />
 
       <div id="recMain"></div>
-
-      <hr class="step-hr" id="stepHr" hidden>
-      <div class="steps" id="steps" hidden></div>
-
-      <p class="mc-label">- Harmonium Masterclass -</p>
-      <div class="video"><iframe id="mc" src="" title="Harmonium Masterclass" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>
-
-      <div class="post-cta" id="postCta"></div>
 
       <div id="body"></div>
 
@@ -363,6 +369,8 @@
   <div class="finalcta" id="finalcta" hidden></div>
 </div>
 
+<div class="sticky-cta" id="stickyCta"></div>
+
 <footer class="sitefooter">
   <img class="flogo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
   <nav class="flinks">
@@ -466,6 +474,7 @@ const steps = document.getElementById("steps");
 const body = document.getElementById("body");
 const postCta = document.getElementById("postCta");
 const finalcta = document.getElementById("finalcta");
+const stickyCta = document.getElementById("stickyCta");
 
 if(c.call){
   recMain.innerHTML =
@@ -477,6 +486,7 @@ if(c.call){
   body.innerHTML = c.good;
   postCta.innerHTML = `<a href="#book" class="btn">BOOK YOUR CALL WITH KENNY →</a>`;
   postCta.classList.add("call-cta");
+  stickyCta.innerHTML = `<a href="#book" class="btn">BOOK YOUR CALL WITH KENNY →</a>`;
   document.querySelector("#book .calendly-inline-widget").setAttribute("data-url", CONFIG.CALENDLY_URL);
   const s=document.createElement("script"); s.src="https://assets.calendly.com/assets/external/widget.js"; s.async=true; document.body.appendChild(s);
   document.getElementById("callblock").hidden = false;
@@ -484,16 +494,17 @@ if(c.call){
     `<p class="lead-in">Ready To Master The Harmonium?</p>` +
     `<a href="#book" class="btn">BOOK YOUR CALL WITH KENNY →</a>` +
     `<img class="deco" src="${CONFIG.DECO_IMG}" alt="" aria-hidden="true">`;
-  setTimeout(()=>{ postCta.classList.add("shown"); }, 45000);
+  setTimeout(()=>{ postCta.classList.add("shown"); stickyCta.classList.add("shown"); document.body.classList.add("has-sticky"); }, 45000);
 }else{
   recTop.innerHTML = c.recTop;
   steps.innerHTML = renderSteps(c.steps); steps.hidden = false;
   body.innerHTML = c.bodyD;
+  stickyCta.innerHTML = `<a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a>`;
   finalcta.innerHTML =
     `<p class="lead-in">Ready To Start Playing?</p>` +
     `<a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a>` +
     `<img class="deco" src="${CONFIG.DECO_IMG}" alt="" aria-hidden="true">`;
-  setTimeout(()=>{ const d=document.getElementById("dCta"); if(d) d.classList.add("shown"); }, 45000);
+  setTimeout(()=>{ const d=document.getElementById("dCta"); if(d) d.classList.add("shown"); stickyCta.classList.add("shown"); document.body.classList.add("has-sticky"); }, 45000);
 }
 if(harmonium==="notyet"){ document.getElementById("harmNote").hidden = false; }
 finalcta.hidden = false;
