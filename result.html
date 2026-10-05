@@ -493,7 +493,7 @@ if(c.call){
     `<p class="lead-in">Ready To Master The Harmonium?</p>` +
     `<a href="#book" class="btn">BOOK YOUR CALL WITH KENNY →</a>` +
     `<img class="deco" src="${CONFIG.DECO_IMG}" alt="" aria-hidden="true">`;
-  setTimeout(()=>{ postCta.classList.add("shown"); stickyCta.classList.add("shown"); document.body.classList.add("has-sticky"); }, 45000);
+  setTimeout(()=>{ postCta.classList.add("shown"); }, 45000);
 }else{
   recTop.innerHTML = c.recTop;
   steps.innerHTML = renderSteps(c.steps); steps.hidden = false;
@@ -503,10 +503,19 @@ if(c.call){
     `<p class="lead-in">Ready To Start Playing?</p>` +
     `<a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a>` +
     `<img class="deco" src="${CONFIG.DECO_IMG}" alt="" aria-hidden="true">`;
-  setTimeout(()=>{ const d=document.getElementById("dCta"); if(d) d.classList.add("shown"); stickyCta.classList.add("shown"); document.body.classList.add("has-sticky"); }, 45000);
+  setTimeout(()=>{ const d=document.getElementById("dCta"); if(d) d.classList.add("shown"); }, 45000);
 }
 if(harmonium==="notyet"){ document.getElementById("harmNote").hidden = false; }
 finalcta.hidden = false;
+
+/* ===== sticky CTA: reveal as soon as the user scrolls a little (fallback after 4s) ===== */
+if(stickyCta.innerHTML){
+  const showSticky=()=>{ stickyCta.classList.add("shown"); document.body.classList.add("has-sticky"); window.removeEventListener("scroll",onScroll); };
+  const onScroll=()=>{ if(window.scrollY>250) showSticky(); };
+  window.addEventListener("scroll",onScroll,{passive:true});
+  setTimeout(showSticky,4000);
+  onScroll();
+}
 </script>
 </body>
 </html>
