@@ -210,6 +210,12 @@ exports.handler = async (event) => {
   try {
     const PIXEL_ID = process.env.META_PIXEL_ID;
     const TOKEN = process.env.META_CAPI_TOKEN;
+    console.log("CAPI env check:", {
+      hasPixel: !!PIXEL_ID,
+      hasToken: !!TOKEN,
+      hasEmail: !!p.email,
+      testCode: process.env.META_TEST_EVENT_CODE || "(none)",
+    });
     if (PIXEL_ID && TOKEN && p.email) {
       const h = event.headers || {};
       const ip = (h["x-nf-client-connection-ip"] || (h["x-forwarded-for"] || "").split(",")[0] || "").trim();
@@ -239,8 +245,9 @@ exports.handler = async (event) => {
         "https://graph.facebook.com/v21.0/" + PIXEL_ID + "/events?access_token=" + encodeURIComponent(TOKEN),
         { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
       );
+      const capiText = await capi.text();
       capiOk = capi.ok;
-      if (!capi.ok) console.error("CAPI failed:", capi.status, await capi.text());
+      console.log("CAPI response:", capi.status, capiText);
     } else if (!PIXEL_ID || !TOKEN) {
       console.error("CAPI skipped: set META_PIXEL_ID and META_CAPI_TOKEN in Netlify env vars");
     }
