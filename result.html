@@ -34,8 +34,8 @@
   .wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;padding:6px 18px 40px;}
 
   .card{width:100%;max-width:880px;background:var(--cream);border:1px solid rgba(232,185,112,.5);border-radius:6px;overflow:hidden;box-shadow:0 30px 70px -28px rgba(0,0,0,.55);}
-  .topband{background:var(--indigo-bg);color:#fff;text-align:center;padding:14px clamp(22px,4vw,50px) 18px;}
-  .topband img{height:40px;width:auto;margin:0 0 12px 0;display:block;filter:brightness(0) invert(1);}
+  .topband{background:var(--indigo-bg);color:#fff;text-align:center;padding:10px clamp(22px,4vw,50px) 16px;}
+  .topband img{height:40px;width:auto;margin:0 0 6px 0;display:block;filter:brightness(0) invert(1);}
   .result-eyebrow{font-family:'Fira Sans',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.06em;
     font-size:clamp(21px,3.4vw,30px);line-height:1.1;color:var(--bright-green);margin:0;}
 
@@ -44,13 +44,14 @@
 
   .result-name{font-family:'Tangerine',cursive;font-weight:700;color:var(--action);
     font-size:clamp(44px,8vw,72px);line-height:.92;margin:6px 0 0;}
-  .result-tag{font-family:'Actor',sans-serif;color:var(--gold-ink2);
-    font-size:clamp(17px,2.2vw,21px);line-height:1.35;max-width:40ch;margin:16px auto 0;}
+  .result-tag{font-family:'Inter',system-ui,sans-serif;color:var(--gold-ink2);
+    font-size:clamp(17px,2.2vw,21px);line-height:1.35;max-width:46ch;margin:16px auto 0;}
   .divider{width:56px;height:2px;background:var(--gold-deep);border-radius:2px;margin:24px auto 0;opacity:.8;}
   .inbox-line{font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--ink);font-size:clamp(16px,2.1vw,19px);line-height:1.3;max-width:42ch;margin:22px auto 0;}
   .inbox-img{display:block;width:100%;max-width:240px;margin:18px auto 0;border-radius:12px;box-shadow:0 12px 28px -18px rgba(0,0,0,.5);}
   .mc-label{text-align:center;font-family:'Fira Sans',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--action);font-size:13px;margin:30px 0 10px;}
   .bridge-italic{font-style:italic;margin-top:26px;}
+  .bridge-line{text-align:center;font-family:'Fira Sans',sans-serif;font-weight:800;color:var(--action);font-size:clamp(16px,2vw,19px);line-height:1.4;max-width:46ch;margin:26px auto 0;}
   #recMain .block{margin-top:34px;}
   #recTop{margin-top:4px;}
   #recTop .block{margin-top:18px;}
@@ -411,15 +412,15 @@ document.getElementById("mc").src = CONFIG.MASTERCLASS_SRC;
 
 /* ===== content per route ===== */
 const THREE = `<p class="list-intro"><b>What you need is three things:</b></p><ol class="three-things"><li>The desire to learn</li><li>The right guidance from a teacher/course</li><li>Action to reach your destination</li></ol>`;
-const READMORE = `<p class="lead rm-line"><b>Read more in the email, and watch the masterclass below.</b></p>`;
+const READMORE = `<p class="lead rm-line"><b>Read more in the email and book a call with Kenny to start your harmonium journey the right way.</b></p>`;
 const MIDHR = `<hr class="mid-hr">`;
 const CONTENT = {
   A:{
     name:"The Inspired Beginner",
-    tag:`You don't need special talent. You need the right guidance and a clear first step, so you never have to unlearn bad habits later.`,
+    tag:`You don't need special music talent${hi}. What you need is the right guidance and a clear first step, so you never have to unlearn bad habits later.`,
     call:true,
     familiar:["You love the sound of the harmonium and feel drawn to it","You're ready to start, but YouTube only leaves you confused","You wonder, can I really learn this? Is it for me?"],
-    bridge:"You don't need special talent. You need the right guidance and a clear first step, so you never have to unlearn bad habits later.",
+    bridge:`You're ready to begin your Harmonium journey${hi}.`,
     afterBridge: MIDHR + THREE + READMORE,
     steps:[["Step 1:","Watch the Harmonium masterclass 👇"],["Step 2:","Book your call and let's talk"]],
     good:`<div class="block good"><p class="block-title">The good news?</p><p class="lead goodlead"><b>With the right structure, everything becomes simple!</b></p><ul><li>Begin the right way, from your very first notes</li><li>Understand the instrument instead of guessing</li><li>Play your first chants with real confidence</li><li>Build a foundation that lasts, step by step</li></ul></div>`
@@ -476,7 +477,7 @@ const stickyCta = document.getElementById("stickyCta");
 if(c.call){
   recMain.innerHTML =
     `<div class="block familiar">${list(c.familiar)}</div>` +
-    `<p class="lead soft bridge-italic">${c.bridge}</p>` +
+    `<p class="${route==='A'?'bridge-line':'lead soft bridge-italic'}">${c.bridge}</p>` +
     c.afterBridge;
   steps.innerHTML = renderSteps(c.steps); steps.hidden = false;
   document.getElementById("stepHr").hidden = false;
