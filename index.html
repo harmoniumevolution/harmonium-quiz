@@ -7,6 +7,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Actor&family=Cookie&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1777296816750878');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1777296816750878&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel -->
+
 <style>
   :root{
     --teal-1:#12514a; --teal-2:#0f3d4c; --teal-3:#0c3144;
@@ -252,7 +267,7 @@ const CONFIG = {
     C:"/result.html",
     D:"/result.html"
   },
-  META_PIXEL_ID: ""
+  META_PIXEL_ID: "1777296816750878"
 };
 
 /* ============================================================ QUIZ */
@@ -312,7 +327,8 @@ function uuid(){return (crypto.randomUUID&&crypto.randomUUID())||"xxxxxxxx-xxxx-
 const eventId=uuid();
 function getCookie(n){const m=document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;]+)");return m?m.pop():"";}
 function getUTM(){const p=new URLSearchParams(location.search);return{utm_source:p.get("utm_source")||"",utm_campaign:p.get("utm_campaign")||"",utm_content:p.get("utm_content")||"",utm_medium:p.get("utm_medium")||""};}
-function fire(ev,ex){if(window.fbq)window.fbq("trackCustom",ev,Object.assign({eventID:eventId},ex||{}));}
+const FB_STANDARD={Lead:1,Purchase:1,CompleteRegistration:1,ViewContent:1,InitiateCheckout:1,Schedule:1};
+function fire(ev,ex){if(!window.fbq)return;const m=FB_STANDARD[ev]?"track":"trackCustom";window.fbq(m,ev,ex||{},{eventID:eventId});}
 function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
 function renderDots(){dotsEl.innerHTML="";for(let i=0;i<TOTAL;i++){const d=document.createElement("span");d.className="dot"+(i<idx?" done":"")+(i===idx?" active":"");dotsEl.appendChild(d);}}
 
