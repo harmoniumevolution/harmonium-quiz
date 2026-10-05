@@ -231,9 +231,13 @@ exports.handler = async (event) => {
       };
       const events = [Object.assign({ event_name: "Lead" }, base)];
       if (p.qualified) events.push(Object.assign({ event_name: "QualifiedLead" }, base));
+      // While testing, set META_TEST_EVENT_CODE in Netlify env to route these to Test Events.
+      // Leave it empty/unset in production.
+      const body = { data: events };
+      if (process.env.META_TEST_EVENT_CODE) body.test_event_code = process.env.META_TEST_EVENT_CODE;
       const capi = await fetch(
         "https://graph.facebook.com/v21.0/" + PIXEL_ID + "/events?access_token=" + encodeURIComponent(TOKEN),
-        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ data: events }) }
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }
       );
       capiOk = capi.ok;
       if (!capi.ok) console.error("CAPI failed:", capi.status, await capi.text());
