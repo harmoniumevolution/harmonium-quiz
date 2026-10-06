@@ -17,7 +17,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY; // service-role key (serv
 const SECRET       = process.env.HE_WEBHOOK_SECRET;    // zelfgekozen geheim
 
 // ---- LET OP: pas deze twee aan je echte Supabase-schema aan ----
-const LEADS_TABLE = 'leads';     // tabel waar de quiz-leads in staan
+const LEADS_TABLE = 'quiz_leads';     // tabel waar de quiz-leads in staan
 // kolommen die we verwachten: email, fbc, fbp, created_at
 // ----------------------------------------------------------------
 
