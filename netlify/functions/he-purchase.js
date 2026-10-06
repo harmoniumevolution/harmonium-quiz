@@ -21,6 +21,7 @@ const CAPI_TOKEN   = process.env.META_CAPI_TOKEN;      // bestaat al
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY; // service-role key (server-side)
 const SECRET       = process.env.HE_WEBHOOK_SECRET;    // zelfde waarde als in Systeme
+const TEST_CODE    = process.env.TEST_EVENT_CODE;      // tijdelijk gezet tijdens testen; leeg = productie
 
 // ---- afgestemd op jouw Supabase-schema ----
 const LEADS_TABLE = 'quiz_leads';   // tabel waar de quiz-leads in staan
@@ -128,8 +129,9 @@ exports.handler = async (event) => {
       user_data: userData,
       custom_data: { currency, value: Number(amount) },
     }],
-    // test_event_code: 'TESTxxxxx',  // tijdelijk aanzetten om in Test Events te zien
   };
+  // Alleen tijdens testen: stuurt dit event naar Meta's Test Events-scherm.
+  if (TEST_CODE) body.test_event_code = TEST_CODE;
 
   // 9. Naar Meta CAPI
   try {
