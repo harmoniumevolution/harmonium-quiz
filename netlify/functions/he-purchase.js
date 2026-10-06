@@ -1,45 +1,29 @@
 // netlify/functions/he-purchase.js
 // Harmonium Evolution — Purchase -> Meta Conversions API (relaunchplan, stap 37)
 //
-// Ontvangt de Systeme.io "New sale"-webhook en stuurt server-side een Purchase
-// naar Meta CAPI. Haalt fbc/fbp uit Supabase (bewaard bij de quiz-lead) voor
-// sterke attributie, en dedupt op order-ID zodat Systeme-retries niet
-// dubbel tellen.
+// Ontvangt de Systeme.io "New sale"-webhook (x-webhook-event: SALE_NEW) en
+// stuurt server-side een Purchase naar Meta CAPI. Haalt fbc/fbp uit Supabase
+// (bewaard bij de quiz-lead) voor sterke attributie, dedupt op order-ID tegen
+// retries, en weegt payment plans 25% lager dan ineens-betalingen.
 //
 // Node 18+ (global fetch beschikbaar op Netlify). Geen extra packages nodig.
 //
-// SECRET-FASE 1: Systeme stuurt een verplicht secret mee. We weten nog niet
-// exact onder welke header / in welke vorm. Daarom loggen we in deze ronde
-// alle headers (console.log hieronder) en wijzen we niets af op het secret.
-// Na de eerste testaankoop zie je in de log hoe Systeme het meestuurt, en
-// vergrendelen we de controle definitief.
+// Veldnamen + centen-conversie bevestigd met een echte testpayload (6 okt 2026).
 
 const crypto = require('crypto');
 
 const PIXEL_ID     = process.env.META_PIXEL_ID;        // 1777296816750878
-const CAPI_TOKEN   = process.env.META_CAPI_TOKEN;      // bestaat al
+const CAPI_TOKEN   = process.env.META_CAPI_TOKEN;
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY; // service-role key (server-side)
-const SECRET       = process.env.HE_WEBHOOK_SECRET;    // zelfde waarde als in Systeme
-const TEST_CODE    = process.env.TEST_EVENT_CODE;      // tijdelijk gezet tijdens testen; leeg = productie
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY; // service-role key
+const SUB_ID       = process.env.HE_WEBHOOK_SUB_ID;    // Systeme webhook-subscription-id (slot)
+const TEST_CODE    = process.env.TEST_EVENT_CODE;      // tijdelijk tijdens testen; leeg = productie
 
-// ---- afgestemd op jouw Supabase-schema ----
-const LEADS_TABLE = 'quiz_leads';   // tabel waar de quiz-leads in staan
-// kolommen: email, fbc, fbp, created_at
-// -------------------------------------------
+const LEADS_TABLE   = 'quiz_leads';  // Supabase-tabel met email, fbc, fbp, created_at
+const PLAN_DISCOUNT = 0.25;          // payment plan telt 25% lager richting Meta
 
 const sha256 = (v) =>
   v ? crypto.createHash('sha256').update(String(v).trim().toLowerCase()).digest('hex') : undefined;
-
-// Haal een waarde op via meerdere mogelijke paden.
-// De exacte payloadstructuur bevestig je bij de eerste echte test (zie de log hieronder).
-const pick = (obj, paths) => {
-  for (const p of paths) {
-    const val = p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
-    if (val !== undefined && val !== null && val !== '') return val;
-  }
-  return undefined;
-};
 
 exports.handler = async (event) => {
   // 1. Alleen POST
@@ -47,47 +31,66 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  // 2. SECRET-FASE 1 — LOG alle headers zodat we zien hoe Systeme het secret meestuurt.
-  //    (Tijdelijk: nog niet afwijzen. Na de eerste test vergrendelen we dit.)
-  console.log('WEBHOOK HEADERS:', JSON.stringify(event.headers));
+  const headers = event.headers || {};
 
-  // 3. Payload parsen
-  let payload;
-  try {
-    payload = JSON.parse(event.body || '{}');
-  } catch (e) {
-    console.error('Kon payload niet parsen:', event.body);
-    return { statusCode: 200, body: 'ok (unparseable)' }; // 200 -> Systeme stopt met retryen
+  // 2. Slot: alleen berichten van JOUW Systeme-webhook (subscription-id) toelaten.
+  //    Niemand anders kent deze waarde. (HMAC-verificatie kan later.)
+  if (SUB_ID && headers['x-webhook-subscription-id'] !== SUB_ID) {
+    console.log('Geweigerd: onbekende subscription-id', headers['x-webhook-subscription-id']);
+    return { statusCode: 401, body: 'Unauthorized' };
   }
 
-  // 4. LOG de volledige payload — bij de eerste test zie je hier de echte structuur
-  console.log('SYSTEME SALE PAYLOAD:', JSON.stringify(payload));
+  // 3. Alleen echte verkopen verwerken
+  if (headers['x-webhook-event'] && headers['x-webhook-event'] !== 'SALE_NEW') {
+    console.log('Overslaan: event is', headers['x-webhook-event']);
+    return { statusCode: 200, body: 'ok (ander event)' };
+  }
 
-  // 5. Velden uithalen (paden defensief; bevestig/verfijn na de eerste log)
-  const email     = pick(payload, ['customer.email','contact.email','order.customer.email','email']);
-  const firstName = pick(payload, ['customer.first_name','contact.first_name','order.customer.first_name','first_name']);
-  const lastName  = pick(payload, ['customer.last_name','contact.last_name','order.customer.last_name','last_name']);
-  const amount    = pick(payload, ['order.amount','order.total','amount','total']);
-  const orderId   = pick(payload, ['order.id','order.order_id','id','order_id']);
-  const currency  = pick(payload, ['order.currency','currency']) || 'USD';
+  // 4. Payload parsen
+  let p;
+  try {
+    p = JSON.parse(event.body || '{}');
+  } catch (e) {
+    console.error('Kon payload niet parsen:', event.body);
+    return { statusCode: 200, body: 'ok (unparseable)' };
+  }
 
-  // 6. Geen e-mail of bedrag <= 0 -> niets sturen (test-ping, gratis order, 100%-kortingstest)
-  if (!email || amount === undefined || Number(amount) <= 0) {
-    console.log('Overslaan: geen e-mail of bedrag <= 0', { email, amount });
+  // 5. Velden uithalen (bevestigd met echte testpayload)
+  const email     = p.customer?.email;
+  const firstName = p.customer?.fields?.first_name;
+  const lastName  = p.customer?.fields?.surname;
+  const orderId   = p.order?.id;
+  const currency  = (p.pricePlan?.currency || 'usd').toLowerCase();
+
+  // Bedrag staat in CENTEN -> /100
+  const paidAmount = (p.order?.totalPrice != null) ? Number(p.order.totalPrice) / 100 : undefined;
+
+  // Ineens vs plan: one_shot = ineens; alles anders = plan -> 25% lager signaal
+  const planType = p.pricePlan?.type;                       // bv. 'one_shot'
+  const isOneShot = planType === 'one_shot';
+  const productName = p.pricePlan?.name || 'Harmonium Evolution';
+
+  // 6. Geen e-mail of geen geldig bedrag -> niets sturen
+  if (!email || paidAmount === undefined || paidAmount <= 0) {
+    console.log('Overslaan: geen e-mail of bedrag <= 0', { email, paidAmount });
     return { statusCode: 200, body: 'ok (skipped)' };
   }
 
-  // 7. Supabase: dedup-check + fbc/fbp ophalen
+  // 7. Waarde naar Meta: ineens = betaald bedrag; plan = 25% lager
+  const value = isOneShot
+    ? Math.round(paidAmount)
+    : Math.round(paidAmount * (1 - PLAN_DISCOUNT));
+
+  // 8. Supabase: dedup-check + fbc/fbp ophalen
   let fbc, fbp;
   if (SUPABASE_URL && SUPABASE_KEY) {
-    const sbHeaders = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
+    const sb = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
 
-    // 7a. Al verstuurd voor dit order-ID? (beschermt tegen Systeme-retries)
     if (orderId) {
       try {
         const chk = await fetch(
           `${SUPABASE_URL}/rest/v1/he_purchase_log?order_id=eq.${encodeURIComponent(orderId)}&select=order_id`,
-          { headers: sbHeaders }
+          { headers: sb }
         );
         const rows = await chk.json();
         if (Array.isArray(rows) && rows.length > 0) {
@@ -97,19 +100,17 @@ exports.handler = async (event) => {
       } catch (e) { console.error('Dedup-check faalde (ga door):', e); }
     }
 
-    // 7b. fbc/fbp ophalen uit de leads-tabel op e-mail (meest recente lead)
     try {
       const lead = await fetch(
         `${SUPABASE_URL}/rest/v1/${LEADS_TABLE}?email=eq.${encodeURIComponent(email)}&select=fbc,fbp&order=created_at.desc&limit=1`,
-        { headers: sbHeaders }
+        { headers: sb }
       );
       const rows = await lead.json();
       if (Array.isArray(rows) && rows[0]) { fbc = rows[0].fbc; fbp = rows[0].fbp; }
     } catch (e) { console.error('fbc/fbp-lookup faalde (ga door zonder):', e); }
   }
 
-  // 8. CAPI-payload bouwen
-  const eventId = `he_purchase_${orderId || (email + '_' + Date.now())}`;
+  // 9. CAPI-payload bouwen
   const userData = {
     em:  [sha256(email)],
     fn:  firstName ? [sha256(firstName)] : undefined,
@@ -125,23 +126,26 @@ exports.handler = async (event) => {
       event_time: Math.floor(Date.now() / 1000),
       action_source: 'website',
       event_source_url: 'https://harmoniumevolution.com/',
-      event_id: eventId,
+      event_id: `he_purchase_${orderId || (email + '_' + Date.now())}`,
       user_data: userData,
-      custom_data: { currency, value: Number(amount) },
+      custom_data: {
+        currency,
+        value,
+        content_name: productName,
+        content_type: isOneShot ? 'fullpay' : 'payment_plan',
+      },
     }],
   };
-  // Alleen tijdens testen: stuurt dit event naar Meta's Test Events-scherm.
   if (TEST_CODE) body.test_event_code = TEST_CODE;
 
-  // 9. Naar Meta CAPI
+  // 10. Naar Meta CAPI
   try {
     const res = await fetch(
       `https://graph.facebook.com/v21.0/${PIXEL_ID}/events?access_token=${CAPI_TOKEN}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     );
-    console.log('CAPI-resultaat:', JSON.stringify(await res.json()));
+    console.log('CAPI-resultaat:', JSON.stringify(await res.json()), '| value:', value, '| product:', productName);
 
-    // 10. Order-ID loggen zodat een retry na succes niet dubbel telt
     if (SUPABASE_URL && SUPABASE_KEY && orderId) {
       await fetch(`${SUPABASE_URL}/rest/v1/he_purchase_log`, {
         method: 'POST',
@@ -151,11 +155,10 @@ exports.handler = async (event) => {
           'Content-Type': 'application/json',
           Prefer: 'resolution=ignore-duplicates',
         },
-        body: JSON.stringify({ order_id: String(orderId), email, amount: Number(amount) }),
+        body: JSON.stringify({ order_id: String(orderId), email, amount: value }),
       });
     }
   } catch (e) {
-    // Tóch 200: anders retryt Systeme en riskeer je een dubbel event zodra het wél lukt.
     console.error('CAPI-call faalde:', e);
   }
 
