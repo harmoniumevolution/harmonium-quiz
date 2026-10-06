@@ -1,12 +1,18 @@
 // netlify/functions/he-purchase.js
 // Harmonium Evolution — Purchase -> Meta Conversions API (relaunchplan, stap 37)
 //
-// Ontvangt de Systeme.io "new sale"-webhook en stuurt server-side een Purchase
+// Ontvangt de Systeme.io "New sale"-webhook en stuurt server-side een Purchase
 // naar Meta CAPI. Haalt fbc/fbp uit Supabase (bewaard bij de quiz-lead) voor
 // sterke attributie, en dedupt op order-ID zodat Systeme-retries niet
 // dubbel tellen.
 //
 // Node 18+ (global fetch beschikbaar op Netlify). Geen extra packages nodig.
+//
+// SECRET-FASE 1: Systeme stuurt een verplicht secret mee. We weten nog niet
+// exact onder welke header / in welke vorm. Daarom loggen we in deze ronde
+// alle headers (console.log hieronder) en wijzen we niets af op het secret.
+// Na de eerste testaankoop zie je in de log hoe Systeme het meestuurt, en
+// vergrendelen we de controle definitief.
 
 const crypto = require('crypto');
 
@@ -14,12 +20,12 @@ const PIXEL_ID     = process.env.META_PIXEL_ID;        // 1777296816750878
 const CAPI_TOKEN   = process.env.META_CAPI_TOKEN;      // bestaat al
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY; // service-role key (server-side)
-const SECRET       = process.env.HE_WEBHOOK_SECRET;    // zelfgekozen geheim
+const SECRET       = process.env.HE_WEBHOOK_SECRET;    // zelfde waarde als in Systeme
 
-// ---- LET OP: pas deze twee aan je echte Supabase-schema aan ----
-const LEADS_TABLE = 'quiz_leads';     // tabel waar de quiz-leads in staan
-// kolommen die we verwachten: email, fbc, fbp, created_at
-// ----------------------------------------------------------------
+// ---- afgestemd op jouw Supabase-schema ----
+const LEADS_TABLE = 'quiz_leads';   // tabel waar de quiz-leads in staan
+// kolommen: email, fbc, fbp, created_at
+// -------------------------------------------
 
 const sha256 = (v) =>
   v ? crypto.createHash('sha256').update(String(v).trim().toLowerCase()).digest('hex') : undefined;
@@ -40,11 +46,9 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  // 2. Simpele beveiliging: geheim token in de URL (?token=...)
-  if (SECRET) {
-    const token = (event.queryStringParameters || {}).token;
-    if (token !== SECRET) return { statusCode: 401, body: 'Unauthorized' };
-  }
+  // 2. SECRET-FASE 1 — LOG alle headers zodat we zien hoe Systeme het secret meestuurt.
+  //    (Tijdelijk: nog niet afwijzen. Na de eerste test vergrendelen we dit.)
+  console.log('WEBHOOK HEADERS:', JSON.stringify(event.headers));
 
   // 3. Payload parsen
   let payload;
