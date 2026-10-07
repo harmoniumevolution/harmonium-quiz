@@ -8,19 +8,329 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Actor&family=Cookie&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
-<!-- Meta Pixel -->
+<!-- Cookie consent + Meta Pixel gate (loads the pixel only after consent) -->
+<!--
+================================================================================
+  HARMONIUM EVOLUTION — Region-aware cookie consent + Meta Pixel gate (v2)
+================================================================================
+  WHAT'S NEW IN v2
+  - Three-button banner (Accept all / Accept only essential / Customize),
+    with a Customize panel of on/off toggles — matching the layout you liked.
+  - Essential is always active and cannot be switched off (legal).
+  - Non-essential toggles default to OFF (legal: no pre-ticked boxes).
+  - Consent is stored in a cookie on the PARENT domain (.harmoniumevolution.com),
+    so a choice made on quiz.harmoniumevolution.com is remembered on the main
+    site too — the visitor is not asked twice.
+  - Ready for both Systeme.io and the Netlify quiz (same snippet, both places).
+
+  WHICH TOGGLES ACTUALLY DO SOMETHING (be honest about this)
+  - Targeting / Advertising  -> controls the Meta Pixel. THIS is your tracking.
+  - Functional               -> placeholder. Nothing loads yet.
+  - Analytics                -> placeholder. Nothing loads yet.
+    (If you want a leaner, fully honest banner, delete the Functional and
+     Analytics blocks — see the two spots marked  OPTIONAL CATEGORY  below.)
+
+  HOW TO INSTALL (do this in BOTH places)
+  1. Replace  YOUR_PIXEL_ID  with your real Meta Pixel ID.
+  2. Set PRIVACY_POLICY_URL to your policy page.
+  3. REMOVE any existing Meta Pixel base code from the header — this snippet
+     loads the pixel itself at the right moment. Leaving the old one in would
+     fire it before consent and defeat the purpose.
+  4. Paste this whole block as high in the <head> as possible:
+        Systeme.io:  Settings -> Custom code  (site-wide header)
+        Netlify quiz: in the quiz page's <head>
+  5. Use the SAME pixel ID in both places.
+
+  IMPORTANT — the CAPI side is separate.
+  Your Netlify Functions that send Lead / QualifiedLead / Purchase to the
+  Conversions API must NOT send those events for EU/UK visitors who declined
+  marketing. This snippet exposes the choice for you to read:
+     window.heConsent.marketing   // true | false
+     document.cookie "he_consent" // JSON, also readable server-side if posted
+  Pass window.heConsent.marketing along with your quiz POST, and in the Function
+  skip the CAPI call when it is false for an EU/UK lead.
+================================================================================
+-->
+<style>
+  #he-cc, #he-cc-reopen, #he-cc *{ box-sizing:border-box; }
+  #he-cc, #he-cc-reopen{
+    font-family:"Jost","DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  #he-cc{
+    position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+    width:min(560px,calc(100% - 28px)); z-index:999999;
+    background:linear-gradient(160deg,#3b34a6 0%,#2a2680 100%); color:#FFFAF7;
+    border:1px solid rgba(232,185,112,.6);
+    border-radius:16px; padding:24px;
+    box-shadow:0 18px 50px rgba(0,0,0,.45), 0 0 46px rgba(232,185,112,.18);
+    opacity:0; translate:0 12px; transition:opacity .35s ease, translate .35s ease;
+    max-height:calc(100vh - 40px); overflow:auto;
+  }
+  #he-cc.he-show{ opacity:1; translate:0 0; }
+  #he-cc h4{ margin:0 0 8px; font-size:18px; font-weight:600; color:#E8B970; }
+  #he-cc p{ margin:0 0 18px; font-size:14px; line-height:1.55; color:#f3e9e1; }
+  #he-cc a{ color:#E8B970; text-decoration:underline; }
+  #he-cc .he-btns{ display:flex; flex-direction:column; gap:10px; }
+  #he-cc button{
+    width:100%; cursor:pointer; font-size:14px; font-weight:600;
+    padding:13px 18px; border-radius:10px; border:1px solid transparent;
+    transition:filter .2s ease, background .2s ease;
+  }
+  /* Accept-all and Essential-only carry equal visual weight on purpose (legal). */
+  #he-cc .he-primary{ background:linear-gradient(135deg,#E8B970,#C9A84C); color:#271354; }
+  #he-cc .he-primary:hover{ filter:brightness(1.06); }
+  /* Quieter than Accept-all, but still a full, equally-easy-to-reach button (legal). */
+  #he-cc .he-secondary{ background:transparent; color:rgba(255,250,247,.78); font-weight:500;
+    border:1px solid rgba(255,250,247,.28); }
+  #he-cc .he-secondary:hover{ background:rgba(255,250,247,.07); color:#FFFAF7; }
+  #he-cc .he-link{
+    background:none; border:none; color:#E8B970; text-decoration:underline;
+    font-size:13px; padding:4px; width:auto; align-self:center; font-weight:500;
+  }
+  /* Customize panel */
+  #he-cc-panel{ display:none; }
+  #he-cc-panel.he-open{ display:block; }
+  #he-cc .he-back{ background:none; border:none; color:#E8B970; font-size:13px;
+    padding:0 0 12px; width:auto; cursor:pointer; text-decoration:underline; font-weight:500; }
+  #he-cc .he-cat{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+    padding:14px 0; border-top:1px solid rgba(255,250,247,.12);
+  }
+  #he-cc .he-cat-txt strong{ display:block; font-size:14px; color:#FFFAF7; margin-bottom:3px; }
+  #he-cc .he-cat-txt span{ font-size:12.5px; line-height:1.5; color:#d9ccc2; }
+  #he-cc .he-always{ font-size:12px; color:#E8B970; white-space:nowrap; padding-top:2px; }
+  /* Toggle */
+  #he-cc .he-sw{ position:relative; width:46px; height:26px; flex:0 0 auto; margin-top:2px; }
+  #he-cc .he-sw input{ opacity:0; width:0; height:0; position:absolute; }
+  #he-cc .he-sw label{
+    position:absolute; inset:0; cursor:pointer; border-radius:26px;
+    background:rgba(255,250,247,.22); transition:background .2s ease;
+  }
+  #he-cc .he-sw label::after{
+    content:""; position:absolute; top:3px; left:3px; width:20px; height:20px;
+    border-radius:50%; background:#FFFAF7; transition:transform .2s ease;
+  }
+  #he-cc .he-sw input:checked + label{ background:linear-gradient(135deg,#E8B970,#C9A84C); }
+  #he-cc .he-sw input:checked + label::after{ transform:translateX(20px); background:#271354; }
+  #he-cc .he-save{ margin-top:16px; }
+  /* Dimmed backdrop: pulls the eye to the banner without hard-blocking the page. */
+  #he-cc-backdrop{
+    position:fixed; inset:0; z-index:999990;
+    background:rgba(18,14,54,.5); opacity:0;
+    transition:opacity .35s ease; pointer-events:none;
+  }
+  #he-cc-backdrop.he-show{ opacity:1; }
+  #he-cc-reopen{
+    position:fixed; left:16px; bottom:16px; z-index:999998;
+    background:#312e81; color:#E8B970; border:1px solid rgba(232,185,112,.45);
+    border-radius:20px; padding:7px 14px; font-size:12px; cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,.25); display:none;
+  }
+</style>
+
 <script>
-!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','1777296816750878');
-fbq('track','PageView');
+(function () {
+  /* ------------------------- OPTIONS ------------------------- */
+  var PIXEL_ID           = "1777296816750878";    // confirm this is the NEW pixel (step 3a)
+  /* Use an ABSOLUTE url: this snippet also runs on quiz.harmoniumevolution.com,
+     where a relative "/privacy-policy" would point at the quiz, not the main site.
+     This should point to your COOKIE policy page. */
+  var PRIVACY_POLICY_URL = "https://www.harmoniumevolution.com/privacy-policy"; // <-- confirm the real slug
+  var SHOW_FOR_EVERYONE  = false;                 // true = show banner to all countries
+  var CONSENT_MONTHS     = 6;
+  /* This Systeme account hosts several sites. The banner + pixel ONLY run on
+     these hosts (apex, www and any subdomain like quiz.* all match). So even
+     if this snippet ends up in a global/site-wide header, it stays off your
+     other sites. Add a host here to test (e.g. your Systeme preview domain). */
+  var ONLY_ON_HOSTS      = ["harmoniumevolution.com", "systeme.io"]; // remove "systeme.io" once live
+  /* ----------------------------------------------------------- */
+
+  /* --- Scope guard: do nothing on any other site in this account --- */
+  var _host = (location.hostname || "").toLowerCase();
+  var _allowed = ONLY_ON_HOSTS.some(function(d){
+    return _host === d || _host.slice(-(d.length + 1)) === "." + d;
+  });
+  if (!_allowed) return;
+
+  var COOKIE = "he_consent";
+
+  /* Public object other scripts (and your quiz POST) can read. */
+  window.heConsent = { essential:true, functional:false, analytics:false, marketing:false };
+
+  /* --- Meta Pixel loader: only ever called when marketing is granted --- */
+  function loadPixel() {
+    if (window._hePixelLoaded) return;
+    window._hePixelLoaded = true;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('consent','grant');
+    fbq('init', PIXEL_ID);
+    fbq('track', 'PageView');
+  }
+
+  /* --- Region check: EU/EEA + UK via browser timezone, fail-safe to EU --- */
+  function consentRequired() {
+    if (SHOW_FOR_EVERYONE) return true;
+    var tz = "";
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    if (!tz) return true;
+    var extra = ["Atlantic/Reykjavik","Atlantic/Canary","Atlantic/Madeira",
+                 "Atlantic/Azores","Asia/Nicosia","Asia/Famagusta"];
+    return tz.indexOf("Europe/") === 0 || extra.indexOf(tz) !== -1;
+  }
+
+  /* --- Parent-domain cookie so quiz + main site share the choice --- */
+  function rootDomain(){
+    var h = location.hostname;                      // e.g. quiz.harmoniumevolution.com
+    var p = h.split(".");
+    if (p.length <= 2) return h;                    // localhost / bare domain
+    return p.slice(-2).join(".");                   // harmoniumevolution.com
+  }
+  function saveChoice(c){
+    c.t = Date.now();
+    try {
+      var val = encodeURIComponent(JSON.stringify(c));
+      var maxAge = CONSENT_MONTHS*30*24*60*60;
+      document.cookie = COOKIE+"="+val+";path=/;max-age="+maxAge+
+        ";domain=."+rootDomain()+";SameSite=Lax";
+    } catch(e){}
+    window.heConsent = c;
+  }
+  function getChoice(){
+    try {
+      var m = document.cookie.match(new RegExp("(?:^|; )"+COOKIE+"=([^;]*)"));
+      if (!m) return null;
+      var c = JSON.parse(decodeURIComponent(m[1]));
+      if (Date.now() - c.t > CONSENT_MONTHS*30*24*60*60*1000) return null;
+      return c;
+    } catch(e){ return null; }
+  }
+
+  /* --- Apply a stored/new choice: load what was granted --- */
+  function apply(c){
+    window.heConsent = c;
+    if (c.marketing) loadPixel();
+    /* OPTIONAL: when you add real functional/analytics tools, load them here
+       guarded by c.functional / c.analytics. */
+  }
+
+  /* --- Banner UI --- */
+  function showBanner(){
+    if (document.getElementById("he-cc")) return;
+    var b = document.createElement("div");
+    b.id = "he-cc"; b.setAttribute("role","dialog"); b.setAttribute("aria-live","polite");
+    b.innerHTML =
+      /* ----- Main screen ----- */
+      '<div id="he-cc-main">' +
+        '<h4>\uD83C\uDFB9 Harmonium Cookies</h4>' +
+        '<p>We use cookies to understand what resonates and to show our music to ' +
+        'the right people. You decide \u2014 nothing marketing-related runs until ' +
+        'you say yes. <a href="'+PRIVACY_POLICY_URL+'">Learn more</a>.</p>' +
+        '<div class="he-btns">' +
+          '<button class="he-primary"   data-act="all">Accept all cookies</button>' +
+          '<button class="he-secondary" data-act="essential">Accept only essential cookies</button>' +
+          '<button class="he-link"      data-act="customize">Customize cookies</button>' +
+        '</div>' +
+      '</div>' +
+      /* ----- Customize panel ----- */
+      '<div id="he-cc-panel">' +
+        '<button class="he-back" data-act="back">\u2039 Back</button>' +
+        '<h4>Customize cookies</h4>' +
+        '<div class="he-cat">' +
+          '<div class="he-cat-txt"><strong>Essential cookies</strong>' +
+            '<span>Needed for the site to work and to remember this choice. Always on.</span></div>' +
+          '<div class="he-always">Always active</div>' +
+        '</div>' +
+        /* OPTIONAL CATEGORY — delete this block for a leaner banner */
+        '<div class="he-cat">' +
+          '<div class="he-cat-txt"><strong>Functional cookies</strong>' +
+            '<span>Remember preferences to improve your experience.</span></div>' +
+          '<div class="he-sw"><input type="checkbox" id="he-functional"><label for="he-functional"></label></div>' +
+        '</div>' +
+        /* OPTIONAL CATEGORY — delete this block for a leaner banner */
+        '<div class="he-cat">' +
+          '<div class="he-cat-txt"><strong>Analytics cookies</strong>' +
+            '<span>Help us understand how the site is used.</span></div>' +
+          '<div class="he-sw"><input type="checkbox" id="he-analytics"><label for="he-analytics"></label></div>' +
+        '</div>' +
+        '<div class="he-cat">' +
+          '<div class="he-cat-txt"><strong>Targeting / advertising cookies</strong>' +
+            '<span>Let us show our music to the right people and measure our ads (Meta Pixel).</span></div>' +
+          '<div class="he-sw"><input type="checkbox" id="he-marketing"><label for="he-marketing"></label></div>' +
+        '</div>' +
+        '<div class="he-btns he-save">' +
+          '<button class="he-primary" data-act="save">Save and apply</button>' +
+        '</div>' +
+      '</div>';
+    var bd = document.createElement("div");
+    bd.id = "he-cc-backdrop";
+    document.body.appendChild(bd);
+    document.body.appendChild(b);
+    requestAnimationFrame(function(){ b.classList.add("he-show"); bd.classList.add("he-show"); });
+
+    b.addEventListener("click", function(e){
+      var act = e.target && e.target.getAttribute && e.target.getAttribute("data-act");
+      if (!act) return;
+      if (act === "all"){
+        finish({ essential:true, functional:true, analytics:true, marketing:true });
+      } else if (act === "essential"){
+        finish({ essential:true, functional:false, analytics:false, marketing:false });
+      } else if (act === "customize"){
+        document.getElementById("he-cc-main").style.display = "none";
+        document.getElementById("he-cc-panel").classList.add("he-open");
+      } else if (act === "back"){
+        document.getElementById("he-cc-panel").classList.remove("he-open");
+        document.getElementById("he-cc-main").style.display = "block";
+      } else if (act === "save"){
+        finish({
+          essential:true,
+          functional: !!q("#he-functional") && q("#he-functional").checked,
+          analytics:  !!q("#he-analytics")  && q("#he-analytics").checked,
+          marketing:  !!q("#he-marketing")  && q("#he-marketing").checked
+        });
+      }
+    });
+  }
+  function q(sel){ return document.querySelector(sel); }
+
+  function finish(choice){
+    saveChoice(choice);
+    apply(choice);
+    closeBanner();
+    showReopen();
+  }
+  function closeBanner(){
+    var b = document.getElementById("he-cc");
+    if (b){ b.classList.remove("he-show"); setTimeout(function(){ b.remove(); }, 350); }
+    var bd = document.getElementById("he-cc-backdrop");
+    if (bd){ bd.classList.remove("he-show"); setTimeout(function(){ bd.remove(); }, 350); }
+  }
+  function showReopen(){
+    if (document.getElementById("he-cc-reopen")) return;
+    var r = document.createElement("button");
+    r.id = "he-cc-reopen"; r.type = "button"; r.textContent = "Cookie settings";
+    r.style.display = "block";
+    r.onclick = function(){ r.style.display="none"; closeBanner(); showBanner(); };
+    document.body.appendChild(r);
+  }
+
+  /* --- Decide what to do on load --- */
+  function run(){
+    if (!consentRequired()){                 // outside EU/UK -> full tracking, no banner
+      apply({ essential:true, functional:true, analytics:true, marketing:true });
+      return;
+    }
+    var c = getChoice();
+    if (c){ apply(c); showReopen(); }         // returning EU/UK visitor
+    else  { showBanner(); }                   // first visit -> ask
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else run();
+})();
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1777296816750878&ev=PageView&noscript=1"/></noscript>
-<!-- End Meta Pixel -->
 
 <style>
   :root{
@@ -451,7 +761,8 @@ function submit(){
   const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,whatsapp_consent:cWa&&!!wa,
     answers:answers,route:r.route,qualified:r.qualified,advanced:r.advanced,
     utm_source:utm.utm_source,utm_campaign:utm.utm_campaign,utm_content:utm.utm_content,utm_medium:utm.utm_medium,
-    fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href};
+    fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href,
+    marketing_consent:(window.heConsent?!!window.heConsent.marketing:true)};
   fire("Lead"); if(r.qualified)fire("QualifiedLead");
     postLead(payload).finally(()=>redirect(r,fn));
 }
