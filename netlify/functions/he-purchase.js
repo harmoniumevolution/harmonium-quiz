@@ -22,6 +22,13 @@ const TEST_CODE    = process.env.TEST_EVENT_CODE;      // tijdelijk tijdens test
 const LEADS_TABLE   = 'quiz_leads';  // Supabase-tabel met email, fbc, fbp, created_at
 const PLAN_DISCOUNT = 0.25;          // payment plan telt 25% lager richting Meta
 
+// Koper die expliciet marketing-cookies weigerde (marketing_consent=false in
+// quiz_leads) krijgt GEEN Purchase naar Meta. Koper zonder consent-record
+// (bv. e-maillijst, geen quiz doorlopen):
+//   true  = toch sturen (behoudt rapportage; standaard)
+//   false = ook overslaan (strengst)
+const SEND_WHEN_CONSENT_UNKNOWN = true;
+
 const sha256 = (v) =>
   v ? crypto.createHash('sha256').update(String(v).trim().toLowerCase()).digest('hex') : undefined;
 
@@ -81,8 +88,8 @@ exports.handler = async (event) => {
     ? Math.round(paidAmount)
     : Math.round(paidAmount * (1 - PLAN_DISCOUNT));
 
-  // 8. Supabase: dedup-check + fbc/fbp ophalen
-  let fbc, fbp;
+  // 8. Supabase: dedup-check + fbc/fbp + marketing-toestemming ophalen
+  let fbc, fbp, marketingConsent;
   if (SUPABASE_URL && SUPABASE_KEY) {
     const sb = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
 
@@ -102,12 +109,20 @@ exports.handler = async (event) => {
 
     try {
       const lead = await fetch(
-        `${SUPABASE_URL}/rest/v1/${LEADS_TABLE}?email=eq.${encodeURIComponent(email)}&select=fbc,fbp&order=created_at.desc&limit=1`,
+        `${SUPABASE_URL}/rest/v1/${LEADS_TABLE}?email=eq.${encodeURIComponent(email)}&select=fbc,fbp,marketing_consent&order=created_at.desc&limit=1`,
         { headers: sb }
       );
       const rows = await lead.json();
-      if (Array.isArray(rows) && rows[0]) { fbc = rows[0].fbc; fbp = rows[0].fbp; }
+      if (Array.isArray(rows) && rows[0]) { fbc = rows[0].fbc; fbp = rows[0].fbp; marketingConsent = rows[0].marketing_consent; }
     } catch (e) { console.error('fbc/fbp-lookup faalde (ga door zonder):', e); }
+  }
+
+  // 8b. Marketing-toestemming respecteren: expliciet geweigerd -> niets sturen.
+  const consentDeclined = marketingConsent === false;
+  const consentUnknown  = (marketingConsent === undefined || marketingConsent === null);
+  if (consentDeclined || (consentUnknown && !SEND_WHEN_CONSENT_UNKNOWN)) {
+    console.log('Purchase overgeslagen: geen marketing-toestemming', { email, marketingConsent });
+    return { statusCode: 200, body: 'ok (no marketing consent)' };
   }
 
   // 9. CAPI-payload bouwen
