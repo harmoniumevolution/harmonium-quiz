@@ -233,7 +233,23 @@
     background:rgba(10,28,80,.82);box-shadow:0 -6px 18px -12px rgba(0,0,0,.5);}
   .sticky-cta.shown{display:flex;}
   .sticky-cta .btn{padding:9px 20px;font-size:clamp(12.5px,1.6vw,14px);letter-spacing:.02em;box-shadow:0 6px 18px rgba(232,185,112,.3);}
-  body.has-sticky{padding-bottom:64px;}
+  .has-sticky{padding-bottom:64px;}
+
+  /* WhatsApp floating button — icon only (call routes only) */
+  .he-wa-fab{position:fixed;right:16px;bottom:20px;z-index:65;width:60px;height:60px;
+    display:flex;align-items:center;justify-content:center;
+    background:#25D366;color:#fff;text-decoration:none;border-radius:50%;
+    box-shadow:0 12px 30px -8px rgba(0,0,0,.5);transition:transform .15s ease,box-shadow .15s ease;}
+  .he-wa-fab:hover{transform:translateY(-2px);box-shadow:0 18px 38px -10px rgba(0,0,0,.6);}
+  .he-wa-fab svg{width:32px;height:32px;flex:none;display:block;}
+  .he-wa-fab::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+    box-shadow:0 0 0 0 rgba(37,211,102,.55);animation:heWaPulse 2.2s ease-out 3;}
+  @keyframes heWaPulse{to{box-shadow:0 0 0 16px rgba(37,211,102,0);}}
+  .has-sticky .he-wa-fab{bottom:76px;}
+  @media (max-width:760px){
+    .he-wa-fab{width:56px;height:56px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom,0px));}
+    .has-sticky .he-wa-fab{bottom:calc(74px + env(safe-area-inset-bottom,0px));}
+  }
 </style>
 </head>
 <body>
@@ -393,7 +409,9 @@ const CONFIG = {
   MASTERCLASS_SRC: "https://player.vimeo.com/video/1201738116?badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1&muted=1",
   CALENDLY_URL: "https://calendly.com/harmoniumevolution/book-your-free-call-now-clone?hide_gdpr_banner=1",
   GETTING_STARTED_URL: "https://harmoniumevolution.com/getting-started",
-  DECO_IMG: "https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba343a89e9.50572169_fed7f3-abe6-483b-c443-2675705ee5_be42f62a-8a5f-4a19-afa6-811f7277a9fa.jpg"
+  DECO_IMG: "https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba343a89e9.50572169_fed7f3-abe6-483b-c443-2675705ee5_be42f62a-8a5f-4a19-afa6-811f7277a9fa.jpg",
+  WHATSAPP_NUMBER: "31623501463",
+  WHATSAPP_TEXT: "Hi Kenny, can I get more information about Harmonium Evolution?"
 };
 
 /* ===== read params ===== */
@@ -508,6 +526,20 @@ if(c.call){
 }
 if(harmonium==="notyet"){ document.getElementById("harmNote").hidden = false; }
 finalcta.hidden = false;
+
+/* ===== WhatsApp floating button — call routes only (A & B, not D) ===== */
+if(c.call){
+  (function(){
+    var href = "https://wa.me/" + CONFIG.WHATSAPP_NUMBER + "?text=" + encodeURIComponent(CONFIG.WHATSAPP_TEXT);
+    var a = document.createElement("a");
+    a.className = "he-wa-fab";
+    a.href = href; a.target = "_blank"; a.rel = "noopener";
+    a.setAttribute("aria-label","Chat with Kenny on WhatsApp");
+    a.innerHTML =
+      '<svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#fff" d="M16.003 2.667C8.64 2.667 2.67 8.637 2.67 16c0 2.35.616 4.656 1.787 6.687L2.667 29.333l6.8-1.78A13.3 13.3 0 0 0 16 29.22h.006c7.36 0 13.33-5.97 13.333-13.333a13.24 13.24 0 0 0-3.9-9.43A13.24 13.24 0 0 0 16.003 2.667zm0 24a11.06 11.06 0 0 1-5.636-1.544l-.404-.24-4.036 1.057 1.077-3.933-.263-.417A11.02 11.02 0 0 1 4.93 16c0-6.11 4.97-11.08 11.08-11.08 2.96 0 5.74 1.153 7.83 3.246A11 11 0 0 1 27.08 16c-.003 6.11-4.973 11.08-11.077 11.08zm6.07-8.3c-.333-.167-1.97-.97-2.273-1.08-.304-.113-.527-.167-.75.167-.22.333-.86 1.08-1.054 1.303-.193.223-.387.25-.72.083-.333-.167-1.407-.518-2.68-1.653-.99-.883-1.66-1.973-1.853-2.307-.193-.333-.02-.513.146-.68.15-.15.333-.387.5-.58.167-.193.223-.333.333-.556.11-.223.056-.417-.027-.583-.083-.167-.75-1.807-1.027-2.473-.27-.65-.544-.563-.75-.573l-.64-.01c-.223 0-.583.083-.89.417-.304.333-1.167 1.14-1.167 2.78 0 1.64 1.194 3.223 1.36 3.446.167.223 2.35 3.587 5.694 5.03.796.343 1.417.548 1.9.7.8.254 1.527.218 2.103.133.642-.096 1.97-.806 2.247-1.583.277-.777.277-1.443.193-1.583-.082-.14-.304-.223-.637-.39z"/></svg>';
+    document.body.appendChild(a);
+  })();
+}
 
 /* ===== sticky CTA: reveal as soon as the user scrolls a little (fallback after 4s) ===== */
 if(stickyCta.innerHTML){
