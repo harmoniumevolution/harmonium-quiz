@@ -109,7 +109,13 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: cors, body: "Bad JSON" };
   }
 
+  // Marketing consent, set by the quiz cookie banner. true for non-EU and
+  // EU/UK visitors who accepted; false ONLY when an EU/UK visitor declined
+  // marketing cookies. Undefined on older quiz builds -> treated as allowed.
+  const marketingOk = p.marketing_consent !== false;
+
   // 1) Supabase is the source of truth. Store first, best effort.
+  //    NOTE: quiz_leads needs a boolean column "marketing_consent".
   let supabaseOk = false;
   try {
     const r = await fetch(SUPABASE_URL + "/rest/v1/quiz_leads", {
@@ -216,7 +222,9 @@ exports.handler = async (event) => {
       hasEmail: !!p.email,
       testCode: process.env.META_TEST_EVENT_CODE || "(none)",
     });
-    if (PIXEL_ID && TOKEN && p.email) {
+    if (!marketingOk) {
+      console.log("CAPI skipped: visitor declined marketing cookies (Lead/QualifiedLead not sent to Meta)");
+    } else if (PIXEL_ID && TOKEN && p.email) {
       const h = event.headers || {};
       const ip = (h["x-nf-client-connection-ip"] || (h["x-forwarded-for"] || "").split(",")[0] || "").trim();
       const ua = h["user-agent"] || "";
@@ -258,6 +266,6 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...cors, "Content-Type": "application/json" },
-    body: JSON.stringify({ ok: true, supabase: supabaseOk, systeme: systemeOk, capi: capiOk }),
+    body: JSON.stringify({ ok: true, supabase: supabaseOk, systeme: systemeOk, capi: capiOk, consent: marketingOk }),
   };
 };
