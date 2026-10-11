@@ -382,6 +382,10 @@
   .intro-wrap{background:var(--indigo-bg);color:#fff;text-align:center;padding:4px clamp(22px,4vw,50px) 22px;}
   .ititle{font-family:'Fira Sans',sans-serif;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:clamp(30px,7vw,46px);line-height:1.06;margin:4px 0 16px;color:var(--bright-green);}
   .hook{font-family:'Inter',sans-serif;color:#fff;font-weight:400;font-size:clamp(17px,2.3vw,21px);line-height:1.6;text-align:center;max-width:54ch;margin:0 auto;}
+  .gets{list-style:none;margin:14px auto 18px;padding:0;max-width:52ch;text-align:left;display:flex;flex-direction:column;gap:10px;}
+  .gets li{position:relative;padding-left:34px;font-family:'Inter',sans-serif;font-size:clamp(16px,2.1vw,19px);line-height:1.5;color:#fff;}
+  .gets .ic{position:absolute;left:0;top:0;}
+  .gets b{color:var(--gold);font-weight:600;}
 
   /* ---- quiz (cream) ---- */
   .quiz{background:var(--cream);text-align:center;padding:40px clamp(22px,4vw,50px) 28px;position:relative;}
@@ -457,7 +461,6 @@
 
   /* bullets under the quiz (mobile only) */
   .intro-foot{background:var(--cream);text-align:center;padding:4px clamp(22px,4vw,50px) 30px;}
-  .mc-line{font-family:'Inter',sans-serif;font-weight:700;color:var(--ink);font-size:clamp(15px,1.9vw,17px);line-height:1.5;max-width:60ch;margin:16px auto 0;}
   .foot-lead{font-family:'Actor',sans-serif;color:var(--ink-soft);font-size:clamp(15px,1.9vw,17px);line-height:1.5;max-width:60ch;margin:16px auto 0;}
   .kenny-quote{font-family:'Cookie',cursive;font-weight:400;color:#b08f3a;font-size:clamp(24px,3.2vw,32px);line-height:1.15;max-width:46ch;margin:28px auto 0;}
 
@@ -504,7 +507,6 @@
     .email-sub{font-size:clamp(20px,5.5vw,25px);}
     .desk-br{display:none;}
     .intro-foot{margin-top:14px;padding:0 16px 26px;}
-    .mc-line{font-size:clamp(16px,4.5vw,18px);}
     .kenny-quote{font-size:clamp(28px,7vw,34px);margin-top:24px;}
     .proof{max-width:none;padding:0 6px;margin-top:16px;}
     .stats{flex-direction:column;flex-wrap:nowrap;gap:16px;margin-bottom:24px;}
@@ -664,12 +666,16 @@ function renderQuestion(){
   const intro = idx===0
     ? `<div class="intro-wrap">
          <h2 class="ititle">Harmonium Quiz</h2>
-         <p class="hook">Discover your harmonium player type + the fastest way forward.<br>👇 <u>Answer the questions below.</u></p>
+         <p class="hook">Answer the ${TOTAL} questions below and you'll instantly receive:</p>
+         <ul class="gets">
+           <li><span class="ic">✅</span><b>Your personal result:</b> your player type, what's really holding you back, and your best next steps.</li>
+           <li><span class="ic">🎹</span><b>Free access</b> to the Harmonium Masterclass "The 7 Principles of Harmonium Playing" + a free harmonium chord sheet.</li>
+         </ul>
+         <p class="hook">👇 <u>Start with question 1.</u></p>
        </div>`
     : "";
   const introFoot = idx===0
     ? `<div class="intro-foot">
-         <p class="mc-line">▶️ After completing this quiz, you will also get free access to the Harmonium Masterclass "The 7 Principles of Harmonium Playing", so you can get started today.</p>
          <p class="kenny-quote">"You don't need special talent, you need the right path and the right guidance."</p>
        </div>`
     : "";
