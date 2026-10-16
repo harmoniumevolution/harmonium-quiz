@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Harmonium Quiz dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f3650; --bg2:#0b2a40; --card:#133f5e; --line:rgba(232,185,112,.22);
+    --ink:#FFFAF7; --ink2:rgba(255,250,247,.72); --ink3:rgba(255,250,247,.5);
+    --gold:#E8B970; --gold2:#c9a84c; --rose:#c86a7a; --red:#e07a7a; --green:#7fd1a8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Jost,system-ui,sans-serif;padding:20px 16px 60px}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font:600 30px/1.1 "Cormorant Garamond",Georgia,serif;color:var(--gold);margin:0}
+  h2{font:500 13px/1 Jost,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin:0 0 12px}
+  .top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .sub{color:var(--ink3);font-size:13px;margin-top:4px}
+  .ranges{display:flex;gap:6px;flex-wrap:wrap}
+  .ranges button{background:transparent;border:1px solid var(--line);color:var(--ink2);padding:7px 14px;border-radius:999px;font:500 13px Jost,sans-serif;cursor:pointer}
+  .ranges button.on{background:var(--gold);border-color:var(--gold);color:#1a1a1a}
+  .ranges button:hover:not(.on){border-color:var(--gold2);color:var(--ink)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .tile .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+  .tile .v{font:600 30px/1.1 "Cormorant Garamond",Georgia,serif;color:var(--gold);margin-top:4px}
+  .tile .s{font-size:12px;color:var(--ink2);margin-top:2px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:right;padding:7px 8px;border-bottom:1px solid rgba(255,250,247,.08);white-space:nowrap}
+  th{color:var(--ink3);font-weight:500;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+  th:first-child,td:first-child{text-align:left}
+  td:first-child{color:var(--ink);max-width:260px;overflow:hidden;text-overflow:ellipsis}
+  tr:last-child td{border-bottom:0}
+  .fun{display:grid;grid-template-columns:150px 1fr 60px 64px 64px;gap:8px;align-items:center;font-size:13px;padding:5px 0}
+  .fun.head{color:var(--ink3);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .fun .lbl{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fun .n,.fun .p,.fun .d{text-align:right}
+  .fun .d{color:var(--red)}
+  .bar{height:14px;background:rgba(255,250,247,.08);border-radius:7px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:7px}
+  .fun.mark .lbl{color:var(--gold);font-weight:500}
+  @media (max-width:560px){.fun{grid-template-columns:110px 1fr 48px 52px 52px;font-size:12px}}
+  svg{width:100%;height:auto;display:block}
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--ink2);margin-top:6px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+  .muted{color:var(--ink3);font-size:13px}
+  .err{background:rgba(224,122,122,.12);border:1px solid rgba(224,122,122,.4);color:#ffd9d9;padding:12px 14px;border-radius:10px}
+  .keybox{display:flex;gap:8px;flex-wrap:wrap}
+  .keybox input{flex:1;min-width:220px;background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:9px 12px;border-radius:8px;font:14px Jost,sans-serif}
+  .keybox button{background:var(--gold);border:0;color:#1a1a1a;padding:9px 16px;border-radius:8px;font:500 14px Jost,sans-serif;cursor:pointer}
+  .ok{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Harmonium Quiz dashboard</h1>
+      <div class="sub" id="sub">Loading…</div>
+    </div>
+    <div class="ranges" id="ranges">
+      <button data-days="7">7 days</button>
+      <button data-days="14">14 days</button>
+      <button data-days="30">30 days</button>
+      <button data-days="all">All time</button>
+    </div>
+  </div>
+  <div id="app"></div>
+</div>
+
+<script>
+/* ---------- settings ---------- */
+const STATS_URL = "/.netlify/functions/stats";
+const Q_LABELS = {
+  0:"Page view", 1:"1 Where you play", 2:"2 How long playing", 3:"3 How learned", 4:"4 Six months from now",
+  5:"5 Learn next", 6:"6 Holding you back", 7:"7 Music check", 8:"8 Notation", 9:"9 Has harmonium",
+  10:"10 Practice time", 11:"11 Ready to invest", 100:"Email step seen", 101:"Submitted"
+};
+const FUNNEL_STEPS = [0,1,2,3,4,5,6,7,8,9,10,11,100,101];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pct = (a,b) => b ? Math.round(1000*a/b)/10 + "%" : "–";
+const num = n => (n||0).toLocaleString("en-US");
+function getKey(){ const u=new URLSearchParams(location.search); return u.get("key") || localStorage.getItem("he_dash_key") || ""; }
+function getDays(){ const u=new URLSearchParams(location.search); const d=u.get("days"); return (d==="all"||["7","14","30"].includes(d)) ? d : "7"; }
+function setUrl(key,days){ const u=new URLSearchParams(location.search); u.set("key",key); u.set("days",days); history.replaceState(null,"",location.pathname+"?"+u.toString()); }
+
+/* ---------- load ---------- */
+async function load(){
+  const key=getKey(), days=getDays();
+  document.querySelectorAll("#ranges button").forEach(b=>b.classList.toggle("on", b.dataset.days===days));
+  if(!key){ askKey(); return; }
+  $("#sub").textContent="Loading…";
+  try{
+    const r=await fetch(STATS_URL+"?key="+encodeURIComponent(key)+"&days="+days,{cache:"no-store"});
+    if(r.status===401){ localStorage.removeItem("he_dash_key"); askKey("That key is not right."); return; }
+    if(!r.ok) throw new Error(await r.text());
+    const d=await r.json();
+    localStorage.setItem("he_dash_key",key); setUrl(key,days);
+    render(d,days);
+  }catch(e){
+    $("#app").innerHTML='<div class="err">Could not load the numbers: '+esc(e.message)+'</div>';
+    $("#sub").textContent="";
+  }
+}
+function askKey(msg){
+  $("#sub").textContent="";
+  $("#app").innerHTML='<div class="card"><h2>Dashboard key</h2>'+(msg?'<p class="muted">'+esc(msg)+'</p>':'')+
+    '<div class="keybox"><input id="key" type="password" placeholder="Paste the dashboard key"><button id="go">Open</button></div></div>';
+  $("#go").onclick=()=>{ const k=$("#key").value.trim(); if(!k)return; localStorage.setItem("he_dash_key",k); setUrl(k,getDays()); load(); };
+  $("#key").onkeydown=e=>{ if(e.key==="Enter") $("#go").click(); };
+}
+
+/* ---------- render ---------- */
+function render(d,days){
+  const t=d.totals||{};
+  const label = days==="all" ? "All time" : "Last "+days+" days";
+  const when = d.generated_at ? new Date(d.generated_at).toLocaleString("en-GB",{timeZone:"Europe/Amsterdam"}) : "";
+  $("#sub").textContent = label+" · updated "+when+" (Amsterdam time)";
+
+  const rate = t.starts ? Math.round(100*t.submits/t.starts) : 0;
+  let h = '<div class="tiles">'
+    + tile("Page views", num(t.views), "quiz page opened")
+    + tile("Starts", num(t.starts), "answered question 1")
+    + tile("Submits", num(t.submits), "left their email")
+    + tile("Completion", t.starts ? rate+"%" : "–", "submits ÷ starts")
+    + tile("Qualified", num(t.qualified), pct(t.qualified,t.submits)+" of submits · "+num(t.advanced)+" advanced")
+    + '</div>';
+
+  h += '<div class="card"><h2>Funnel · where people drop off</h2>' + funnel(d.funnel||[]) + '</div>';
+  h += '<div class="card"><h2>Per day</h2>' + daily(d.daily||[], days) + '</div>';
+  h += '<div class="card"><h2>Per ad (utm_content)</h2>' + byAd(d.by_ad||[]) + '</div>';
+  h += '<div class="grid2">'
+    + '<div class="card"><h2>Device</h2>' + byDevice(d.by_device||[]) + '</div>'
+    + '<div class="card"><h2>Routes</h2>' + routes(d.routes||[]) + '</div>'
+    + '</div>';
+  h += '<div class="card"><h2>Email consent</h2>' + consent(d.consent||[]) + '</div>';
+  $("#app").innerHTML=h;
+}
+function tile(k,v,s){ return '<div class="tile"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s)+'</div></div>'; }
+
+function funnel(rows){
+  const m={}; rows.forEach(r=>m[r.step]=r.n||0);
+  const base = m[1]||0, max = Math.max(m[0]||0, base, 1);
+  let h='<div class="fun head"><div>Step</div><div></div><div class="n">People</div><div class="p">% of starts</div><div class="d">Drop</div></div>';
+  let prev=null;
+  FUNNEL_STEPS.forEach(s=>{
+    const n=m[s]||0;
+    const w=Math.round(100*n/max);
+    const drop = (prev!==null && prev>0 && s!==0) ? Math.round(100*(prev-n)/prev) : null;
+    const dropTxt = drop===null ? "" : (drop>0 ? "−"+drop+"%" : "0%");
+    const mark = (s===100||s===101) ? " mark" : "";
+    h+='<div class="fun'+mark+'"><div class="lbl">'+esc(Q_LABELS[s]||s)+'</div><div class="bar"><i style="width:'+w+'%"></i></div>'
+      +'<div class="n">'+num(n)+'</div><div class="p">'+(s===0?"–":pct(n,base))+'</div><div class="d">'+dropTxt+'</div></div>';
+    if(s!==0) prev=n; else prev=null;
+  });
+  h+='<p class="muted">Starts = answered question 1. A session counts once per step, so going back and forth does not inflate the numbers. Page views and starts come from the quiz page, submits from the lead table.</p>';
+  return h;
+}
+
+function daily(rows, days){
+  if(!rows.length) return '<p class="muted">No data yet.</p>';
+  let data=rows;
+  let note="";
+  if(days==="all" && rows.length>90){ data=rows.slice(-90); note='<p class="muted">Chart shows the last 90 days; the table and tiles cover all time.</p>'; }
+  // fill missing days so the bars line up
+  const byDay={}; data.forEach(r=>byDay[r.day]=r);
+  const first=new Date(data[0].day+"T00:00:00Z"), last=new Date(data[data.length-1].day+"T00:00:00Z");
+  const seq=[]; for(let t=first.getTime(); t<=last.getTime(); t+=86400000){ const k=new Date(t).toISOString().slice(0,10); seq.push(byDay[k]||{day:k,starts:0,submits:0,qualified:0}); }
+  const W=1000,H=220,P={l:36,r:8,t:10,b:28}; const iw=W-P.l-P.r, ih=H-P.t-P.b;
+  const max=Math.max(1,...seq.map(r=>r.starts));
+  const bw=iw/seq.length, gap=Math.min(6,bw*0.25);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Starts and submits per day">';
+  // gridlines
+  for(let i=0;i<=4;i++){ const y=P.t+ih-ih*i/4; const v=Math.round(max*i/4);
+    s+='<line x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,250,247,.1)"/>'
+      +'<text x="'+(P.l-6)+'" y="'+(y+4)+'" font-size="11" fill="rgba(255,250,247,.5)" text-anchor="end">'+v+'</text>'; }
+  seq.forEach((r,i)=>{
+    const x=P.l+i*bw+gap/2, w=Math.max(1,bw-gap);
+    const hs=ih*r.starts/max, hu=ih*r.submits/max;
+    s+='<rect x="'+x+'" y="'+(P.t+ih-hs)+'" width="'+w+'" height="'+hs+'" fill="#c9a84c" rx="2"><title>'+esc(r.day)+': '+r.starts+' starts</title></rect>';
+    s+='<rect x="'+x+'" y="'+(P.t+ih-hu)+'" width="'+w+'" height="'+hu+'" fill="#c86a7a" rx="2"><title>'+esc(r.day)+': '+r.submits+' submits</title></rect>';
+    const every=Math.ceil(seq.length/10);
+    if(i%every===0||i===seq.length-1){ s+='<text x="'+(x+w/2)+'" y="'+(H-8)+'" font-size="11" fill="rgba(255,250,247,.55)" text-anchor="middle">'+esc(r.day.slice(5))+'</text>'; }
+  });
+  s+='</svg><div class="legend"><span><i style="background:#c9a84c"></i>Starts</span><span><i style="background:#c86a7a"></i>Submits</span></div>'+note;
+  // table, newest first
+  let t='<table style="margin-top:12px"><tr><th>Day</th><th>Starts</th><th>Submits</th><th>Completion</th><th>Qualified</th></tr>';
+  rows.slice().reverse().slice(0,31).forEach(r=>{ t+='<tr><td>'+esc(r.day)+'</td><td>'+num(r.starts)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td><td>'+num(r.qualified)+'</td></tr>'; });
+  t+='</table>'+(rows.length>31?'<p class="muted">Table shows the latest 31 days.</p>':'');
+  return s+t;
+}
+
+function byAd(rows){
+  if(!rows.length) return '<p class="muted">No data yet. Ads need utm_content in the link (the plan uses utm_content={{ad.name}}).</p>';
+  let h='<table><tr><th>Ad</th><th>Starts</th><th>Submits</th><th>Completion</th><th>Qualified</th><th>Qualified %</th></tr>';
+  rows.forEach(r=>{ h+='<tr><td title="'+esc(r.ad)+'">'+esc(r.ad)+'</td><td>'+num(r.starts)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td><td>'+num(r.qualified)+'</td><td>'+pct(r.qualified,r.submits)+'</td></tr>'; });
+  return h+'</table><p class="muted">Completion = submits ÷ starts for that ad. Qualified % = qualified ÷ submits. Compare this with cost per lead in Meta to see which ads bring people who finish and qualify.</p>';
+}
+function byDevice(rows){
+  if(!rows.length) return '<p class="muted">No data yet.</p>';
+  let h='<table><tr><th>Device</th><th>Starts</th><th>Submits</th><th>Completion</th></tr>';
+  rows.forEach(r=>{ h+='<tr><td>'+esc(r.device)+'</td><td>'+num(r.starts)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td></tr>'; });
+  return h+'</table>';
+}
+function routes(rows){
+  if(!rows.length) return '<p class="muted">No submits yet.</p>';
+  const total=rows.reduce((a,r)=>a+(r.n||0),0);
+  const name={A:"A · beginner (call)",B:"B · rising practitioner (call)",D:"D · free tips (Getting Started)"};
+  let h='<table><tr><th>Route</th><th>Submits</th><th>Share</th></tr>';
+  rows.forEach(r=>{ h+='<tr><td>'+esc(name[r.route]||r.route)+'</td><td>'+num(r.n)+'</td><td>'+pct(r.n,total)+'</td></tr>'; });
+  return h+'</table>';
+}
+function consent(rows){
+  if(!rows.length) return '<p class="muted">No submits yet.</p>';
+  const total=rows.reduce((a,r)=>a+(r.n||0),0);
+  const lbl=r=>{
+    if(r.region==="eu") return r.email_consent ? "EU/UK · ticked the box" : "EU/UK · did not tick (results email only)";
+    if(r.region==="row") return "Outside EU/UK · consent via note under the button";
+    return "Before 16 Oct 2026 (old required checkbox)";
+  };
+  let h='<table><tr><th>Group</th><th>Submits</th><th>Share</th></tr>';
+  rows.forEach(r=>{ h+='<tr><td>'+esc(lbl(r))+'</td><td>'+num(r.n)+'</td><td>'+pct(r.n,total)+'</td></tr>'; });
+  return h+'</table>';
+}
+
+/* ---------- wiring ---------- */
+document.querySelectorAll("#ranges button").forEach(b=>b.onclick=()=>{ const u=new URLSearchParams(location.search); u.set("days",b.dataset.days); history.replaceState(null,"",location.pathname+"?"+u.toString()); load(); });
+load();
+</script>
+</body>
+</html>
