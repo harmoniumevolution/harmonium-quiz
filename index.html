@@ -645,6 +645,27 @@ function getCookie(n){const m=document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;
 function getUTM(){const p=new URLSearchParams(location.search);return{utm_source:p.get("utm_source")||"",utm_campaign:p.get("utm_campaign")||"",utm_content:p.get("utm_content")||"",utm_medium:p.get("utm_medium")||""};}
 const FB_STANDARD={Lead:1,Purchase:1,CompleteRegistration:1,ViewContent:1,InitiateCheckout:1,Schedule:1};
 function fire(ev,ex){if(!window.fbq)return;const m=FB_STANDARD[ev]?"track":"trackCustom";window.fbq(m,ev,ex||{},{eventID:eventId});}
+
+/* ============================================================ QUIZ EVENTS (anonymous, for the dashboard)
+   Writes one small row per step to the Supabase table quiz_events: random session id,
+   step number, device and UTMs. No email, no name, not linked to the lead. The key below
+   is the PUBLIC anon key (Supabase -> Project Settings -> API Keys); the table only allows
+   inserts, so it is safe in the browser. Leave the placeholder and nothing is sent. */
+const EV_URL="https://amrvuxvlsebrznwcqhij.supabase.co/rest/v1/quiz_events";
+const EV_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtcnZ1eHZsc2Vicnpud2NxaGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTAyMTMsImV4cCI6MjA5MTk4NjIxM30.yizmM8VnZ-wujPHNG6uIw5KrMMkKahS6lqv8rscsPHU";
+const EV_SID=(()=>{try{let s=sessionStorage.getItem("he_sid");if(!s){s=uuid();sessionStorage.setItem("he_sid",s);}return s;}catch(e){return uuid();}})();
+const EV_DEVICE=(window.matchMedia&&window.matchMedia("(max-width: 768px)").matches)?"mobile":"desktop";
+function track(ev,extra){
+  if(!EV_KEY||EV_KEY.indexOf("PASTE")===0)return;
+  const u=getUTM();
+  const row=Object.assign({sid:EV_SID,ev:ev,device:EV_DEVICE,utm_source:u.utm_source,utm_campaign:u.utm_campaign,utm_content:u.utm_content},extra||{});
+  try{
+    fetch(EV_URL,{method:"POST",keepalive:true,
+      headers:{"apikey":EV_KEY,"Authorization":"Bearer "+EV_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
+      body:JSON.stringify(row)}).catch(()=>{});
+  }catch(e){}
+}
+track("view");
 function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
 function renderDots(){dotsEl.innerHTML="";for(let i=0;i<TOTAL;i++){const d=document.createElement("span");d.className="dot"+(i<idx?" done":"")+(i===idx?" active":"");dotsEl.appendChild(d);}}
 
@@ -718,18 +739,18 @@ function renderQuestion(){
         else{answers[Q.id]=[...arr,val];b.classList.add("sel");}}
       else{answers[Q.id]=val;box.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));b.classList.add("sel");}
       if(!started){started=true;fire("QuizStart");} refresh();
-      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{idx++;renderQuestion();},800); }
+      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{track("q",{step:idx+1});idx++;renderQuestion();},800); }
     };
     box.appendChild(b);
   });
   swap(wrap); refresh();
   const back=wrap.querySelector("#back"); if(back)back.onclick=()=>{idx--;renderQuestion();};
-  if(next) next.onclick=()=>{ if(last)renderEmail(); else{idx++;renderQuestion();} };
+  if(next) next.onclick=()=>{ track("q",{step:idx+1}); if(last)renderEmail(); else{idx++;renderQuestion();} };
 }
 
 /* ============================================================ EMAIL */
 function renderEmail(){
-  renderDots();
+  renderDots(); track("email");
   { const _ti=document.querySelector(".topimg"); if(_ti){_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png"; _ti.classList.add("email-pic");} }
   const wrap=document.createElement("div"); wrap.className="step";
   wrap.innerHTML=
@@ -788,6 +809,7 @@ function submit(){
     fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href,
     marketing_consent:(window.heConsent?!!window.heConsent.marketing:true)};
   fire("Lead"); if(r.qualified)fire("QualifiedLead");
+  track("submit",{route:r.route,qualified:r.qualified});
     postLead(payload).finally(()=>redirect(r,fn));
 }
 function postLead(p){
