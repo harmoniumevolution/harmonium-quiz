@@ -188,9 +188,16 @@ exports.handler = async (event) => {
         if (!ph.ok) console.error("Phone update failed:", ph.status, await ph.text());
       }
 
-      const tags = ["route-" + String(p.route || "").toLowerCase()];
+      // Email consent decides which route tag starts the automations in Systeme:
+      //   consent   -> "route-b"              (starts the full email sequence)
+      //   no consent -> "route-b-results-only" (sends only the results email)
+      // "email-consent" is the general tag to filter newsletters and broadcasts on.
+      const route = String(p.route || "").toLowerCase();
+      const emailOk = p.email_consent === true;
+      const tags = [emailOk ? "route-" + route : "route-" + route + "-results-only"];
       if (p.qualified) tags.push("qualified");
       if (p.advanced) tags.push("advanced");
+      if (emailOk) tags.push("email-consent");
       const tagMap = await getTagMap();
       for (const name of tags) {
         const tagId = tagMap[name];
