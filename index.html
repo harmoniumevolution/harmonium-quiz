@@ -181,6 +181,9 @@
                  "Atlantic/Azores","Asia/Nicosia","Asia/Famagusta"];
     return tz.indexOf("Europe/") === 0 || extra.indexOf(tz) !== -1;
   }
+  /* Shared with the quiz email step: EU/UK visitors get an opt-in checkbox,
+     everyone else gets a consent note under the button. */
+  window.heConsentRequired = consentRequired;
 
   /* --- Parent-domain cookie so quiz + main site share the choice --- */
   function rootDomain(){
@@ -741,13 +744,24 @@ function renderEmail(){
            <input id="wa" type="tel" autocomplete="tel" placeholder="Your number" />
          </div>
        </div>
-       <label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me the masterclass, my results and helpful lessons by email.</span></label>
+       <div id="consent-email"></div>
        <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
        <div class="err" id="err"></div>
        <div class="row center"><button class="btn-primary btn-cta" id="submit">Yes, I want to receive the masterclass and my results →</button></div>
        <p class="fine privacy">🔒 Your information is 100% secure and we will never spam you. Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.</p>
        <button class="btn-ghost back-sm" id="back">← Back</button>
      </div>`;
+  // Email consent: EU/UK (same timezone check as the cookie banner) gets an unticked,
+  // optional checkbox. Everyone else gets a consent note under the button.
+  // If the banner script is missing (e.g. localhost), fail safe to the checkbox.
+  const euConsent=(typeof window.heConsentRequired==="function")?window.heConsentRequired():true;
+  if(euConsent){
+    wrap.querySelector("#consent-email").innerHTML=
+      `<label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me my results, the masterclass and Kenny's lessons by email.</span></label>`;
+  }else{
+    wrap.querySelector(".privacy").textContent=
+      "🔒 By continuing you agree to receive your results, the masterclass and lessons by email. Your information is 100% secure, we never spam, and you can unsubscribe anytime.";
+  }
   swap(wrap);
   wrap.querySelector("#back").onclick=()=>{idx=TOTAL-1;renderQuestion();};
   wrap.querySelector("#submit").onclick=submit;
@@ -757,15 +771,18 @@ function submit(){
   const fn=document.getElementById("fn").value.trim();
   const em=document.getElementById("em").value.trim();
   const _waNum=document.getElementById("wa").value.trim(); const _cc=document.getElementById("cc"); const wa=_waNum?(((_cc&&_cc.value)||"")+" "+_waNum).trim():"";
-  const cEmail=document.getElementById("c-email").checked;
+  // Checkbox present = EU/UK visitor: consent is whatever they ticked (optional, never required).
+  // No checkbox = outside EU/UK: consent via the note under the button.
+  const cBox=document.getElementById("c-email");
+  const cEmail=cBox?cBox.checked:true;
+  const consentRegion=cBox?"eu":"row";
   const cWa=document.getElementById("c-wa").checked;
   const err=document.getElementById("err");
   if(!fn){err.textContent="Please add your first name.";return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent="Please enter a valid email.";return;}
-  if(!cEmail){err.textContent="Please tick the box so I can send it to you.";return;}
   err.textContent=""; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
   const r=computeRoute(answers); const utm=getUTM();
-  const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,whatsapp_consent:cWa&&!!wa,
+  const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,consent_region:consentRegion,whatsapp_consent:cWa&&!!wa,
     answers:answers,route:r.route,qualified:r.qualified,advanced:r.advanced,
     utm_source:utm.utm_source,utm_campaign:utm.utm_campaign,utm_content:utm.utm_content,utm_medium:utm.utm_medium,
     fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href,
