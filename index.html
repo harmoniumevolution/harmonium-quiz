@@ -354,7 +354,8 @@
   }
   *,*::before,*::after{box-sizing:border-box;}
   html,body{margin:0;min-height:100%;}
-  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--cream);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;
+    background:linear-gradient(160deg, var(--teal-1) 0%, var(--teal-2) 52%, var(--teal-3) 100%);}
 
   /* decorative stars/lines are no longer shown (the element stays for the script) */
   .decor{display:none;}
@@ -371,7 +372,7 @@
   .topband{background:var(--indigo-bg);color:#fff;padding:12px 18px 12px;border-radius:13px 13px 0 0;}
   .hbar{display:flex;align-items:center;justify-content:space-between;gap:12px;}
   .wordmark{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
-  .hquiz{font-family:'Inter',sans-serif;font-size:13px;color:rgba(255,255,255,.8);white-space:nowrap;}
+  .hquiz{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--bright-green);white-space:nowrap;}
   .dots{display:flex;gap:3px;margin:10px 0 0;}
   .dot{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .3s ease;}
   .dot.done{background:var(--gold);}
@@ -383,24 +384,25 @@
 
   /* ---- one intro line above question 1 ---- */
   .intro-wrap{background:#fff;text-align:center;padding:18px clamp(18px,4vw,44px) 0;}
-  .hook{font-family:'Inter',sans-serif;font-size:15px;line-height:1.5;color:var(--ink-soft);max-width:52ch;margin:0 auto;}
+  .hook{font-family:'Inter',sans-serif;font-size:17px;line-height:1.5;color:var(--ink-soft);max-width:52ch;margin:0 auto;}
 
   /* ---- quiz (white) ---- */
   .quiz{background:#fff;text-align:center;padding:20px clamp(18px,4vw,44px) 24px;position:relative;border-radius:0 0 13px 13px;}
-  .q-count{display:block;font-family:'Inter',sans-serif;font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 8px;}
-  h1.q{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:clamp(22px,3vw,28px);line-height:1.2;margin:0 0 8px;color:var(--indigo);text-align:center;}
-  .sublabel{font-family:'Inter',sans-serif;font-weight:500;font-size:14px;margin:0 0 18px;}
+  /* question counter: bright-green label with indigo text (bright green on white would be unreadable) */
+  .q-count{display:inline-block;font-family:'Fira Sans',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--indigo);background:var(--bright-green);padding:6px 16px;border-radius:999px;margin:0 0 14px;}
+  h1.q{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:0 0 10px;color:var(--indigo);text-align:center;}
+  .sublabel{font-family:'Inter',sans-serif;font-weight:500;font-size:15px;margin:0 0 18px;}
   .sublabel.one{color:var(--ink-soft);}
   .sublabel.all{color:var(--action-sel);font-weight:600;}
   .hint{font-size:14px;color:var(--ink-soft);margin:-8px 0 18px;font-style:italic;}
 
-  /* answer cards: white, teal border, radio/checkbox mark. Selected = filled teal. */
+  /* answer cards: very light teal tint, teal border, radio/checkbox mark. Selected = filled teal. */
   .options{display:flex;flex-direction:column;gap:12px;text-align:left;max-width:560px;margin:0 auto;}
   .opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
     font-family:'Inter',sans-serif;font-size:18px;line-height:1.3;color:var(--ink);
-    background:#fff;border:2px solid var(--action);border-radius:14px;padding:15px 18px;cursor:pointer;
+    background:#EEF7F8;border:2px solid var(--action);border-radius:14px;padding:15px 18px;cursor:pointer;
     transition:background .15s,border-color .15s,color .15s,transform .1s;}
-  .opt:hover{background:rgba(0,139,157,.07);}
+  .opt:hover{background:#DFF0F2;}
   .opt:active{transform:scale(.995);}
   .opt:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
   .opt .mark{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--action);background:#fff;position:relative;transition:all .15s;}
@@ -447,8 +449,8 @@
   .wa-details summary{list-style:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--action-sel);padding:4px 0;}
   .wa-details summary::-webkit-details-marker{display:none;}
   .wa-details[open] summary{margin-bottom:10px;}
-  .check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-soft);margin:0 auto 12px;cursor:pointer;line-height:1.4;max-width:520px;text-align:left;}
-  .check input{margin-top:2px;accent-color:var(--action);width:18px;height:18px;flex:none;}
+  .check{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--ink);margin:0 auto 14px;cursor:pointer;line-height:1.45;max-width:520px;text-align:left;}
+  .check input{margin-top:1px;accent-color:var(--action);width:24px;height:24px;flex:none;}
   .fine{font-size:12px;color:var(--ink-faint);margin:8px auto 0;max-width:520px;}
   .fine a{color:var(--action-deep);}
   .fine.privacy{margin-top:16px;max-width:52ch;font-size:13px;}
@@ -465,9 +467,10 @@
   .trustbar .sep{width:1px;height:1em;background:rgba(255,252,246,.3);}
   @media (max-width:350px){ .trustbar{flex-wrap:wrap;row-gap:7px;} .trustbar .sep{display:none;} }
 
-  /* ---- below the card: small photo, quote, what you get ---- */
-  .below{position:relative;z-index:1;width:100%;max-width:760px;margin:28px auto 0;text-align:center;}
-  .below-img{width:100%;max-width:300px;height:auto;border-radius:12px;border:2px solid var(--gold);display:block;margin:0 auto;}
+  /* ---- cream box below the card: photo, quote, what you get, reviews ---- */
+  .below{position:relative;z-index:1;width:100%;max-width:760px;margin:28px auto 0;text-align:center;
+    background:var(--cream);border:1px solid rgba(232,185,112,.5);border-radius:14px;padding:28px 24px 32px;}
+  .below-img{width:100%;max-width:480px;height:auto;border-radius:12px;border:2px solid var(--gold);display:block;margin:0 auto;}
   .kenny-quote{font-family:'Cookie',cursive;font-weight:400;color:#8f7430;font-size:clamp(24px,3.2vw,32px);line-height:1.15;max-width:46ch;margin:18px auto 0;}
   .gets{list-style:none;margin:18px auto 0;padding:0;max-width:52ch;text-align:left;display:flex;flex-direction:column;gap:10px;}
   .gets li{position:relative;padding-left:32px;font-family:'Inter',sans-serif;font-size:16px;line-height:1.5;color:var(--ink);}
@@ -475,7 +478,7 @@
   .gets b{color:var(--ink);font-weight:600;}
 
   /* social proof */
-  .proof{position:relative;z-index:1;width:100%;max-width:760px;margin:30px auto 0;text-align:center;color:var(--ink);}
+  .proof{position:relative;z-index:1;width:100%;margin:30px auto 0;padding-top:26px;border-top:1px solid rgba(232,185,112,.45);text-align:center;color:var(--ink);}
   .reviews-title{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--indigo);font-size:clamp(20px,2.6vw,26px);margin:0 0 18px;text-align:center;}
   .reviews{display:flex;flex-direction:column;align-items:center;gap:16px;}
   .rev{width:100%;max-width:470px;border-radius:12px;box-shadow:0 14px 30px -20px rgba(18,50,68,.4);background:#fff;display:block;height:auto;}
@@ -492,15 +495,18 @@
   /* ============ MOBILE ============ */
   @media (max-width:900px){ .side-img{display:none;} .hero-row{gap:0;} }
   @media (max-width:700px){
-    .wrap{padding:8px 8px 28px;}
-    .card{border-radius:12px;}
-    .topband{padding:10px 14px 10px;border-radius:11px 11px 0 0;}
+    /* card and cream box run edge to edge, no side gaps */
+    .wrap{padding:0 0 24px;}
+    .card{border-radius:0;border-left:0;border-right:0;box-shadow:none;}
+    .topband{padding:10px 14px 10px;border-radius:0;}
     .wordmark{font-size:13px;}
-    .intro-wrap{padding:14px 14px 0;}
-    .hook{font-size:14px;}
-    .quiz{padding:16px 14px 18px;}
-    h1.q{font-size:clamp(21px,5.8vw,25px);}
-    .sublabel{font-size:13.5px;margin-bottom:14px;}
+    .hquiz{font-size:14px;}
+    .intro-wrap{padding:16px 14px 0;}
+    .hook{font-size:15.5px;}
+    .quiz{padding:16px 14px 18px;border-radius:0;}
+    .q-count{font-size:14px;padding:5px 14px;}
+    h1.q{font-size:clamp(23px,6.4vw,28px);}
+    .sublabel{font-size:15px;margin-bottom:14px;}
     .options{gap:10px;}
     .opt{padding:13px 14px;font-size:17px;gap:12px;}
     .btn-primary{padding:14px 26px;}
@@ -508,12 +514,12 @@
     .q.result-big{font-size:clamp(24px,7vw,30px);}
     .email-sub{font-size:16px;}
     .desk-br{display:none;}
-    .intro-foot{padding:10px 12px;border-radius:0 0 11px 11px;}
-    .below{margin-top:22px;padding:0 6px;}
-    .below-img{max-width:240px;}
+    .intro-foot{padding:10px 12px;border-radius:0;}
+    .below{margin:12px 0 0;border-radius:0;border-left:0;border-right:0;padding:22px 14px 26px;}
+    .below-img{max-width:100%;}
     .kenny-quote{font-size:clamp(26px,7vw,32px);}
     .gets li{font-size:15px;}
-    .proof{max-width:none;padding:0 6px;margin-top:24px;}
+    .proof{margin-top:24px;padding-top:22px;}
     .rev{max-width:100%;}
     .before-footer{display:block;width:100%;max-width:520px;margin:16px auto 0;height:auto;border-radius:12px;}
   }
@@ -548,16 +554,16 @@
       <li><span class="ic">✅</span>Watch the harmonium masterclass</li>
       <li><span class="ic">✅</span>Download the chord sheet</li>
     </ul>
-  </section>
 
-  <div class="proof">
-    <h3 class="reviews-title">What our students are saying</h3>
-    <div class="reviews">
-      <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
-      <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
-      <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8f0acc9.85756707_des.png" alt="Student review" />
+    <div class="proof">
+      <h3 class="reviews-title">What our students are saying</h3>
+      <div class="reviews">
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8f0acc9.85756707_des.png" alt="Student review" />
+      </div>
     </div>
-  </div>
+  </section>
 </div>
 
 <img class="before-footer" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
@@ -697,7 +703,7 @@ function renderQuestion(){
   const wrap=document.createElement("div"); wrap.className="step";
   const intro = idx===0
     ? `<div class="intro-wrap">
-         <p class="hook">Takes 2 minutes. You'll get your result, the harmonium masterclass and the chord sheet.</p>
+         <p class="hook">This quiz takes 2 minutes. You'll get your result, the harmonium masterclass and the chord sheet.</p>
        </div>`
     : "";
   const introFoot = idx===0
@@ -725,7 +731,7 @@ function renderQuestion(){
      <div class="quiz">
        <span class="q-count">Question ${idx+1} of ${TOTAL}</span>
        <h1 class="q">${Q.q}</h1>
-       <p class="sublabel ${multi?"all":"one"}">${multi?"Tap all that apply, then press Next":"Tap the one that fits you best"}</p>
+       <p class="sublabel ${multi?"all":"one"}">${multi?"Tap all that apply 👇, then press Next":"Tap the one that fits you best 👇"}</p>
        ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
        <div class="options"></div>
        ${controls}
