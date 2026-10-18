@@ -468,6 +468,21 @@
   .foot-lead{font-family:'Actor',sans-serif;color:var(--ink-soft);font-size:clamp(15px,1.9vw,17px);line-height:1.5;max-width:60ch;margin:16px auto 0;}
   .kenny-quote{font-family:'Cookie',cursive;font-weight:400;color:#b08f3a;font-size:clamp(24px,3.2vw,32px);line-height:1.15;max-width:46ch;margin:28px auto 0;}
 
+  /* ---- trust bar (framed, in the blue intro under the bullets, one line) ---- */
+  .trustbar{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;white-space:nowrap;
+    width:fit-content;max-width:100%;margin:4px auto 0;padding:10px clamp(10px,3vw,18px);
+    border:1px solid rgba(232,185,112,.4);border-radius:0;
+    background:rgba(232,185,112,.08);
+    box-shadow:0 0 14px rgba(232,185,112,.16);
+    gap:clamp(6px,2vw,14px);
+    font-family:'Inter',sans-serif;font-size:clamp(10px,2.8vw,15px);line-height:1;color:rgba(255,252,246,.8);}
+  .trustbar .ti{display:inline-flex;align-items:baseline;gap:.35em;}
+  .trustbar .tb-stars{color:var(--gold);letter-spacing:1px;font-size:1.15em;}
+  .trustbar b{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:1em;color:var(--gold);}
+  .trustbar .sep{width:1px;height:1em;background:rgba(255,252,246,.3);}
+  /* very narrow phones only: wrap neatly instead of overflowing */
+  @media (max-width:350px){ .trustbar{flex-wrap:wrap;row-gap:7px;} .trustbar .sep{display:none;} }
+
   /* social proof */
   .proof{position:relative;z-index:1;width:100%;max-width:960px;margin:26px auto 0;text-align:center;color:rgba(255,252,246,.9);}
   .stats{display:flex;flex-wrap:wrap;justify-content:space-evenly;align-items:center;gap:12px 30px;margin-bottom:26px;}
@@ -540,12 +555,6 @@
   </div>
 
   <div class="proof">
-    <div class="stats">
-      <div class="item"><span class="stars">★★★★★</span><span class="lbl">4.9 RATING</span></div>
-      <div class="item"><span class="big">850+</span><span class="lbl">STUDENTS WORLDWIDE</span></div>
-      <div class="item"><span class="big">18</span><span class="lbl">YEARS OF TEACHING</span></div>
-    </div>
-    <div class="trust-divider"></div>
     <h3 class="reviews-title">What Our Students Are Saying</h3>
     <div class="reviews">
       <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
@@ -693,10 +702,17 @@ function renderQuestion(){
          <h2 class="ititle">Harmonium Quiz</h2>
          <p class="hook gold">Answer the ${TOTAL} questions below 👇 and you'll instantly receive:</p>
          <ul class="gets">
-           <li><span class="ic">✅</span><b>Your personal result:</b> your player type, what's really holding you back, and your best next steps.</li>
-           <li><span class="ic">✅</span><b>Access</b> to the Harmonium Masterclass</li>
-           <li><span class="ic">✅</span>Harmonium <b>chord</b> sheet.</li>
+           <li><span class="ic">✅</span>Your result: player type, what's holding you back + your best next steps.</li>
+           <li><span class="ic">✅</span>Watch Harmonium Masterclass</li>
+           <li><span class="ic">✅</span>Download chord sheet</li>
          </ul>
+         <div class="trustbar">
+           <span class="ti"><span class="tb-stars" aria-hidden="true">★★★★★</span><b>4.9</b> Rating</span>
+           <span class="sep" aria-hidden="true"></span>
+           <span class="ti"><b>880+</b> students</span>
+           <span class="sep" aria-hidden="true"></span>
+           <span class="ti"><b>18y</b> of teaching</span>
+         </div>
        </div>`
     : "";
   const introFoot = idx===0
