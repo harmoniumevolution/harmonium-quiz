@@ -373,21 +373,33 @@
   .hbar{display:flex;align-items:center;justify-content:space-between;gap:12px;}
   .wordmark{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
   .hquiz{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:15px;letter-spacing:.02em;color:var(--bright-green);white-space:nowrap;}
-  .dots{display:flex;gap:3px;margin:10px 0 0;}
-  .dot{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.18);transition:background .3s ease;}
+  /* one continuous bar that fills up (segments touch, so the total can't be counted) */
+  .dots{display:flex;gap:0;margin:10px 0 0;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.18);}
+  .dot{flex:1;height:5px;border-radius:0;background:transparent;transition:background .3s ease;}
   .dot.done{background:var(--gold);}
   .dot.active{background:var(--gold);box-shadow:none;transform:none;}
+
+  /* decorative harmonium-keys strip, glued under the indigo bar, full card width */
+  .keys-strip{display:block;width:100%;height:72px;object-fit:cover;object-position:center;background:var(--indigo-bg);}
 
   #stage{padding:0;}
   .step{display:flex;flex-direction:column;animation:rise .45s cubic-bezier(.2,.7,.2,1);}
   @keyframes rise{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:none;}}
 
   /* ---- one intro line above question 1 ---- */
-  .intro-wrap{background:#fff;text-align:center;padding:18px clamp(18px,4vw,44px) 0;}
-  .hook{font-family:'Inter',sans-serif;font-size:17px;line-height:1.5;color:var(--ink-soft);max-width:52ch;margin:0 auto;}
+  .intro-wrap{background:#fff;text-align:center;padding:22px clamp(18px,4vw,44px) 0;}
+  .hook{font-family:'Inter',sans-serif;font-size:17px;font-weight:600;line-height:1.4;color:var(--ink);max-width:52ch;margin:0 auto 8px;}
+  /* three ticks, centred as a block, ticks lined up on the left */
+  .hook-list{list-style:none;display:inline-flex;flex-direction:column;align-items:flex-start;gap:4px;margin:0 auto;padding:0;text-align:left;}
+  .hook-list li{font-family:'Inter',sans-serif;font-size:16px;line-height:1.4;color:var(--ink-soft);}
+  .hook-list li::before{content:"✓";color:#10B981;font-weight:800;margin-right:9px;}
 
   /* ---- quiz (white) ---- */
   .quiz{background:#fff;text-align:center;padding:20px clamp(18px,4vw,44px) 24px;position:relative;border-radius:0 0 13px 13px;}
+  /* question 1 only: extra breathing room above and below the question and answers */
+  .step:has(.intro-wrap) .quiz{padding-top:20px;padding-bottom:52px;}
+  .step:has(.intro-wrap) .sublabel{margin-bottom:24px;}
+  .step:has(.intro-wrap) .options{gap:16px;}
   /* question counter: bright-green label with indigo text (bright green on white would be unreadable) */
   .q-count{display:inline-block;font-family:'Fira Sans',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--indigo);background:var(--bright-green);padding:6px 16px;border-radius:999px;margin:0 0 14px;}
   h1.q{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:0 0 10px;color:var(--indigo);text-align:center;}
@@ -457,15 +469,15 @@
   .err{color:#b23a2e;font-size:14px;margin:8px 0 0;min-height:1em;}
 
   /* ---- trust strip (indigo) at the bottom of the card on question 1 ---- */
-  .intro-foot{background:var(--indigo-bg);padding:12px 16px;border-radius:0 0 13px 13px;}
+  .intro-foot{background:var(--indigo-bg);padding:14px 16px;border-radius:0 0 13px 13px;}
   .trustbar{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;white-space:nowrap;
-    gap:clamp(8px,2vw,16px);margin:0 auto;
-    font-family:'Inter',sans-serif;font-size:clamp(11px,2.8vw,15px);line-height:1;color:rgba(255,252,246,.85);}
+    gap:clamp(10px,2.4vw,20px);margin:0 auto;
+    font-family:'Inter',sans-serif;font-size:17px;line-height:1;color:rgba(255,252,246,.9);}
   .trustbar .ti{display:inline-flex;align-items:baseline;gap:.35em;}
   .trustbar .tb-stars{color:var(--gold);letter-spacing:1px;font-size:1.15em;}
   .trustbar b{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:1em;color:var(--gold);}
   .trustbar .sep{width:1px;height:1em;background:rgba(255,252,246,.3);}
-  @media (max-width:350px){ .trustbar{flex-wrap:wrap;row-gap:7px;} .trustbar .sep{display:none;} }
+  @media (max-width:330px){ .trustbar{flex-wrap:wrap;row-gap:7px;} .trustbar .sep{display:none;} }
 
   /* ---- cream box below the card: photo, quote, what you get, reviews ---- */
   .below{position:relative;z-index:1;width:100%;max-width:760px;margin:28px auto 0;text-align:center;
@@ -501,8 +513,10 @@
     .topband{padding:10px 14px 10px;border-radius:0;}
     .wordmark{font-size:13px;}
     .hquiz{font-size:14px;}
-    .intro-wrap{padding:16px 14px 0;}
-    .hook{font-size:15.5px;}
+    .keys-strip{height:48px;}
+    .intro-wrap{padding:18px 14px 0;}
+    .hook{font-size:16px;margin-bottom:6px;}
+    .hook-list li{font-size:15.5px;}
     .quiz{padding:16px 14px 18px;border-radius:0;}
     .q-count{font-size:14px;padding:5px 14px;}
     h1.q{font-size:clamp(23px,6.4vw,28px);}
@@ -514,7 +528,13 @@
     .q.result-big{font-size:clamp(24px,7vw,30px);}
     .email-sub{font-size:16px;}
     .desk-br{display:none;}
-    .intro-foot{padding:10px 12px;border-radius:0;}
+    .step:has(.intro-wrap) .quiz{padding-top:14px;padding-bottom:32px;}
+    .step:has(.intro-wrap) .sublabel{margin-bottom:20px;}
+    .step:has(.intro-wrap) .options{gap:14px;}
+    /* mobile trust strip: only rating + students, bigger, spread over the full width */
+    .intro-foot{padding:14px 10px;border-radius:0;}
+    .trustbar{justify-content:space-evenly;gap:8px;font-size:clamp(15px,4.6vw,19px);}
+    .trustbar .tb-desk{display:none;}
     .below{margin:12px 0 0;border-radius:0;border-left:0;border-right:0;padding:22px 14px 26px;}
     .below-img{max-width:100%;}
     .kenny-quote{font-size:clamp(26px,7vw,32px);}
@@ -541,6 +561,7 @@
         </div>
         <div class="dots" id="dots" aria-hidden="true"></div>
       </div>
+      <img class="keys-strip" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba30c92ae2.65435221_d73fb52-212f-574-205-4efc65a17d6_5da203b4-68c7-418e-acb5-8bf6db78df48.jpg" alt="" aria-hidden="true" />
       <div id="stage" aria-live="polite"></div>
     </div>
     <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba307b7582.46663061_ca1e6021-220f-4fd3-b872-b78debf40aa1.jpg" alt="Playing the harmonium" />
@@ -600,16 +621,15 @@ const CONFIG = {
 /* ============================================================ QUIZ */
 const QUESTIONS = [
   { id:"place", q:"Where do you play the harmonium, or dream of playing?",
-    opts:[["home","At home, for myself, family and close friends"],["kirtan","Together with others: kirtan, bhajans, …"],
-          ["lead","Lead kirtan or singing circles on harmonium"],["teach","Use in yoga classes or sound healing sessions"]]},
+    opts:[["home","At home, for myself, family and close friends"],["kirtan","Together with others: kirtan, bhajans, yoga classes, retreats, …"]]},
+  { id:"learned", q:"How have you learned harmonium so far?",
+    opts:[["notyet","Not yet"],["self","Self-taught: YouTube, by ear, from a book"],["lessons","Some lessons from a teacher, or another course"]]},
   { id:"level", q:"How long have you been playing harmonium?",
     opts:[["none","Haven't started yet"],["under1","Less than a year"],["1to5","1-5 years"],["over5","More than 5 years"]]},
-  { id:"learned", q:"How have you learned harmonium so far?", multi:true,
-    opts:[["notyet","Not yet"],["youtube","YouTube videos"],["lessons","A few lessons from a teacher"],["course","Another course"],["ear","On my own by ear"]]},
   { id:"sixmonths", q:"Where would you love to be six months from now?", multi:true,
-    opts:[["firstsongs","Play my first chants, kirtans, bhajans"],["confident","Playing confidently with other musicians and singers"],["everysong","Play and figure out every song I want, with confidence"],["refinement","Play with more refinement and creativity"],["teaching","Teach harmonium"]]},
+    opts:[["firstsongs","Play my first chants, kirtans, bhajans"],["confident","Playing confidently with other musicians and singers"],["everysong","Play and figure out every song I want, with confidence"],["refinement","Play with more refinement and creativity"]]},
   { id:"learnnext", q:"What do you most want to learn next?", multi:true,
-    opts:[["technique","The right technique"],["system","The music system: chords, melodies, ragas, rhythm, that finally click"],["interludes","Play interludes and improvisations"],["playsing","Play and singing together"],["melody","Melody & improvisation"]]},
+    opts:[["technique","The right harmonium technique"],["system","The logic of the music system: chords, melodies, ragas, rhythm, …"],["interludes","Play interludes and improvisations"],["accompany","Accompany my singing confidently"],["anykey","Play songs in any key and find the chords myself"]]},
   { id:"blocker", q:"What's holding you back most right now?", multi:true,
     opts:[["start","I don't know where and how to start"],["stuck","I learned a bit on my own, but I'm stuck"],["flat","My playing sounds flat, chords and rhythm don't flow"],["freedom","I want to play more freely: melody, improvisation, leading"]]},
   { id:"musiccheck", q:"Quick music check. Which notes make a C minor chord?",
@@ -619,9 +639,7 @@ const QUESTIONS = [
     opts:[["sargam","Indian Sargam: sa, re, ga, ma, pa, dha, ni, sa"],["western","Western: C, D, E, F, G, A, B, C"],["both","Both Indian & Western"],["none","Didn't learn yet"]]},
   { id:"harmonium", q:"Do you have a harmonium to practice on?",
     opts:[["yes","Yes"],["onway","It's on its way"],["notyet","Not yet"]]},
-  { id:"time", q:"How much time can you realistically practice each week?",
-    opts:[["under1","Under 1 hour"],["1to3","1-3 hours"],["3to5","3-5 hours"],["5plus","5+ hours"]]},
-    { id:"invest", q:"If Harmonium Evolution turns out to be the right fit for your playing, and you decided to go for it, what's true for you right now?",
+  { id:"invest", q:"If Harmonium Evolution turns out to be the right fit for your playing, and you decided to go for it, what's true for you right now?",
     opts:[["free","I'm just looking for free tips for now"],
           ["ready","I'm ready to invest in learning this properly"]]}
 ];
@@ -703,7 +721,12 @@ function renderQuestion(){
   const wrap=document.createElement("div"); wrap.className="step";
   const intro = idx===0
     ? `<div class="intro-wrap">
-         <p class="hook">This quiz takes 2 minutes. You'll get your result, the harmonium masterclass and the chord sheet.</p>
+         <p class="hook">Start with this 2-minute quiz. You'll get:</p>
+         <ul class="hook-list">
+           <li>Your result</li>
+           <li>Watch Masterclass</li>
+           <li>Download chord sheet</li>
+         </ul>
        </div>`
     : "";
   const introFoot = idx===0
@@ -712,8 +735,8 @@ function renderQuestion(){
            <span class="ti"><span class="tb-stars" aria-hidden="true">★★★★★</span><b>4.9</b> Rating</span>
            <span class="sep" aria-hidden="true"></span>
            <span class="ti"><b>880+</b> students</span>
-           <span class="sep" aria-hidden="true"></span>
-           <span class="ti"><b>18y</b> of teaching</span>
+           <span class="sep tb-desk" aria-hidden="true"></span>
+           <span class="ti tb-desk"><b>18y</b> of teaching</span>
          </div>
        </div>`
     : "";
@@ -729,7 +752,7 @@ function renderQuestion(){
   wrap.innerHTML=
     `${intro}
      <div class="quiz">
-       <span class="q-count">Question ${idx+1} of ${TOTAL}</span>
+       <span class="q-count">Question ${idx+1}${idx>=2?` of ${TOTAL}`:""}</span>
        <h1 class="q">${Q.q}</h1>
        <p class="sublabel ${multi?"all":"one"}">${multi?"Tap all that apply 👇, then press Next":"Tap the one that fits you best 👇"}</p>
        ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
