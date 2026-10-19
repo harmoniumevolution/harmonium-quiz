@@ -4,6 +4,7 @@
 // Secrets live in Netlify environment variables, never in the repo:
 //   SYSTEME_API_KEY        (Systeme public API key)
 //   SUPABASE_SERVICE_KEY   (Supabase service_role key)
+//   ZAPIER_D_HOOK          (optional: Zapier catch hook for experienced D-leads)
 
 const SYSTEME_BASE = "https://api.systeme.io/api";
 const SUPABASE_URL = "https://amrvuxvlsebrznwcqhij.supabase.co";
@@ -114,6 +115,16 @@ exports.handler = async (event) => {
   // marketing cookies. Undefined on older quiz builds -> treated as allowed.
   const marketingOk = p.marketing_consent !== false;
 
+  // Experienced players (1-5 years or 5+ years) who chose "not planning to invest
+  // right now" (route D). They get a personal 3-mail follow-up in Systeme via the
+  // tag "d-experienced" and, optionally, a heads-up to Kenny via Zapier.
+  // Only with email consent, because the follow-up sends email. No Meta event:
+  // the QualifiedLead signal stays untouched.
+  const expD =
+    String(p.route || "").toUpperCase() === "D" &&
+    ["1to5", "over5"].includes((p.answers || {}).level) &&
+    p.email_consent === true;
+
   // 1) Supabase is the source of truth. Store first, best effort.
   //    NOTE: quiz_leads needs a boolean column "marketing_consent".
   let supabaseOk = false;
@@ -192,12 +203,15 @@ exports.handler = async (event) => {
       //   consent   -> "route-b"              (starts the full email sequence)
       //   no consent -> "route-b-results-only" (sends only the results email)
       // "email-consent" is the general tag to filter newsletters and broadcasts on.
+      // "d-experienced" (route D, 1-5 or 5+ years, with consent) starts the
+      // personal follow-up campaign "D experienced follow-up".
       const route = String(p.route || "").toLowerCase();
       const emailOk = p.email_consent === true;
       const tags = [emailOk ? "route-" + route : "route-" + route + "-results-only"];
       if (p.qualified) tags.push("qualified");
       if (p.advanced) tags.push("advanced");
       if (emailOk) tags.push("email-consent");
+      if (expD) tags.push("d-experienced");
       const tagMap = await getTagMap();
       for (const name of tags) {
         const tagId = tagMap[name];
@@ -214,6 +228,32 @@ exports.handler = async (event) => {
     }
   } catch (e) {
     console.error("Systeme sync error:", e);
+  }
+
+  // 2b) Optional heads-up to Kenny for experienced D-leads, via a Zapier catch hook
+  //     (ZAPIER_D_HOOK in Netlify env vars). Lets him send a personal WhatsApp when a
+  //     number was left. Best effort; never blocks the response. Nothing is sent when
+  //     the variable is unset.
+  let hookOk = false;
+  if (expD && process.env.ZAPIER_D_HOOK) {
+    try {
+      const hook = await fetch(process.env.ZAPIER_D_HOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: p.first_name || "",
+          email: p.email || "",
+          level: label("level", (p.answers || {}).level),
+          whatsapp: p.whatsapp || "", // the quiz only fills this in when WhatsApp consent was given
+          utm_content: p.utm_content || "",
+          route: p.route || "",
+        }),
+      });
+      hookOk = hook.ok;
+      if (!hook.ok) console.error("Zapier hook failed:", hook.status, await hook.text());
+    } catch (e) {
+      console.error("Zapier hook error:", e);
+    }
   }
 
   // 3) Conversions API (server-side). Mirrors the browser Lead/QualifiedLead with the
@@ -273,6 +313,14 @@ exports.handler = async (event) => {
   return {
     statusCode: 200,
     headers: { ...cors, "Content-Type": "application/json" },
-    body: JSON.stringify({ ok: true, supabase: supabaseOk, systeme: systemeOk, capi: capiOk, consent: marketingOk }),
+    body: JSON.stringify({
+      ok: true,
+      supabase: supabaseOk,
+      systeme: systemeOk,
+      capi: capiOk,
+      consent: marketingOk,
+      d_experienced: expD,
+      hook: hookOk,
+    }),
   };
 };
