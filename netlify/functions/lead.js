@@ -110,6 +110,24 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: cors, body: "Bad JSON" };
   }
 
+  // 0) Email check (20 Oct 2026). Systeme refuses an invalid address with a 422, and then
+  //    the contact is never created and the lead gets no emails. Same rule as the quiz:
+  //    trim, lowercase, drop a stray dot/comma at the end, require a domain with a TLD.
+  //    An invalid address is refused here before anything is stored or sent, and the quiz
+  //    shows "please check your email" instead of redirecting.
+  const EMAIL_RE = /^[a-z0-9._%+'-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
+  const email = String(p.email || "").trim().toLowerCase().replace(/[.,;]+$/, "");
+  if (!EMAIL_RE.test(email) || email.includes("..")) {
+    console.error("Invalid email, nothing saved:", email);
+    return {
+      statusCode: 200,
+      headers: { ...cors, "Content-Type": "application/json" },
+      body: JSON.stringify({ ok: false, reason: "invalid_email" }),
+    };
+  }
+  p.email = email; // normalized address for Supabase, Systeme and CAPI
+  let systemeEmailInvalid = false; // set when Systeme itself still refuses the address
+
   // Marketing consent, set by the quiz cookie banner. true for non-EU and
   // EU/UK visitors who accepted; false ONLY when an EU/UK visitor declined
   // marketing cookies. Undefined on older quiz builds -> treated as allowed.
@@ -141,6 +159,7 @@ exports.handler = async (event) => {
     });
     supabaseOk = r.ok;
     if (!r.ok) console.error("Supabase insert failed:", r.status, await r.text());
+    else console.log("Supabase insert:", r.status, "route", p.route, "qualified", !!p.qualified, "consent", p.email_consent === true);
   } catch (e) {
     console.error("Supabase insert error:", e);
   }
@@ -165,6 +184,7 @@ exports.handler = async (event) => {
     const existing = await findContactByEmail(p.email);
     if (existing) {
       contactId = existing.id;
+      console.log("Systeme contact found (existing):", contactId);
     } else {
       const res = await systeme("/contacts", {
         method: "POST",
@@ -173,8 +193,12 @@ exports.handler = async (event) => {
       if (res.ok) {
         const created = await res.json();
         contactId = created && created.id;
+        console.log("Systeme contact created:", res.status, contactId);
       } else {
-        console.error("Create failed:", res.status, await res.text());
+        const text = await res.text();
+        console.error("Create failed:", res.status, text);
+        // Systeme's own validation refused the address: tell the quiz so the person can fix it.
+        if (res.status === 422 && /"propertyPath"\s*:\s*"email"/.test(text)) systemeEmailInvalid = true;
         const again = await findContactByEmail(p.email);
         if (again) contactId = again.id;
       }
@@ -187,6 +211,7 @@ exports.handler = async (event) => {
         body: JSON.stringify({ fields }),
       });
       if (!patch.ok) console.error("Field update failed:", patch.status, await patch.text());
+      else console.log("Systeme fields updated:", patch.status);
 
       // Phone number from the WhatsApp field, in its own update so a problem
       // here cannot break the fields above. Optional, best effort.
@@ -213,17 +238,21 @@ exports.handler = async (event) => {
       if (emailOk) tags.push("email-consent");
       if (expD) tags.push("d-experienced");
       const tagMap = await getTagMap();
+      const tagged = [];
       for (const name of tags) {
         const tagId = tagMap[name];
         if (!tagId) {
           console.error("Tag not found in Systeme:", name);
           continue;
         }
-        await systeme("/contacts/" + contactId + "/tags", {
+        const t = await systeme("/contacts/" + contactId + "/tags", {
           method: "POST",
           body: JSON.stringify({ tagId }),
         });
+        if (t.ok) tagged.push(name);
+        else console.error("Tag add failed:", name, t.status, await t.text());
       }
+      console.log("Systeme tags added:", tagged.join(", ") || "(none)");
       systemeOk = patch.ok;
     }
   } catch (e) {
@@ -271,6 +300,10 @@ exports.handler = async (event) => {
     });
     if (!marketingOk) {
       console.log("CAPI skipped: visitor declined marketing cookies (Lead/QualifiedLead not sent to Meta)");
+    } else if (systemeEmailInvalid) {
+      // The quiz asks the person to correct the address; the corrected submit sends the event
+      // with the same event_id, so sending the wrong hash now would win the dedup.
+      console.log("CAPI skipped: Systeme refused the email address, waiting for a corrected submit");
     } else if (PIXEL_ID && TOKEN && p.email) {
       const h = event.headers || {};
       const ip = (h["x-nf-client-connection-ip"] || (h["x-forwarded-for"] || "").split(",")[0] || "").trim();
@@ -310,11 +343,14 @@ exports.handler = async (event) => {
     console.error("CAPI error:", e);
   }
 
+  console.log("Lead done:", { supabase: supabaseOk, systeme: systemeOk, capi: capiOk, emailRefused: systemeEmailInvalid });
+
   return {
     statusCode: 200,
     headers: { ...cors, "Content-Type": "application/json" },
     body: JSON.stringify({
-      ok: true,
+      ok: !systemeEmailInvalid,
+      reason: systemeEmailInvalid ? "invalid_email" : undefined,
       supabase: supabaseOk,
       systeme: systemeOk,
       capi: capiOk,
