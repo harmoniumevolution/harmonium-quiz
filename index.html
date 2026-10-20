@@ -467,6 +467,7 @@
   .fine a{color:var(--action-deep);}
   .fine.privacy{margin-top:16px;max-width:52ch;font-size:13px;}
   .err{color:#b23a2e;font-size:14px;margin:8px 0 0;min-height:1em;}
+  .err a{color:#b23a2e;font-weight:600;}
 
   /* ---- trust strip (white, hairline on top) at the bottom of the card on question 1 ---- */
   .intro-foot{background:#fff;border-top:1px solid var(--line);padding:14px 16px;border-radius:0 0 13px 13px;}
@@ -697,6 +698,29 @@ function track(ev,extra){
 }
 track("view");
 function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
+
+/* ============================================================ EMAIL CHECK (20 Oct 2026)
+   Systeme rejects an invalid address with a 422 and the contact is never created, so the
+   lead gets no emails. This check runs before anything is sent: trims, lowercases, drops a
+   stray dot/comma at the end, requires a real-looking domain with a TLD, and catches the
+   most common domain typos with a "Did you mean" suggestion. */
+const EMAIL_RE=/^[a-z0-9._%+'-]+@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/;
+const DOMAIN_FIXES={
+  "gmail.con":"gmail.com","gmail.co":"gmail.com","gmail.cm":"gmail.com","gmail.om":"gmail.com","gmail.comm":"gmail.com",
+  "gmial.com":"gmail.com","gamil.com":"gmail.com","gmai.com":"gmail.com","gnail.com":"gmail.com","gemail.com":"gmail.com","gmail.co.m":"gmail.com",
+  "hotmail.con":"hotmail.com","hotmal.com":"hotmail.com","hotmai.com":"hotmail.com","hotmial.com":"hotmail.com","hotmail.co":"hotmail.com",
+  "yahoo.con":"yahoo.com","yaho.com":"yahoo.com","yahoo.co":"yahoo.com",
+  "outlook.con":"outlook.com","outlok.com":"outlook.com","icloud.con":"icloud.com","icoud.com":"icloud.com",
+  "live.con":"live.com","aol.con":"aol.com","protonmail.con":"protonmail.com","proton.con":"proton.me"
+};
+function checkEmail(raw){
+  const em=(raw||"").trim().toLowerCase().replace(/[.,;]+$/,"");
+  if(!em||em.includes("..")||!EMAIL_RE.test(em))return {ok:false,email:em};
+  const dom=em.split("@")[1];
+  if(DOMAIN_FIXES[dom])return {ok:false,email:em,suggest:em.split("@")[0]+"@"+DOMAIN_FIXES[dom]};
+  return {ok:true,email:em};
+}
+let rejectedEmail="";   // address the Function refused once; a second try with the same one goes through to the result page
 function renderDots(){dotsEl.innerHTML="";for(let i=0;i<TOTAL;i++){const d=document.createElement("span");d.className="dot"+(i<idx?" done":"")+(i===idx?" active":"");dotsEl.appendChild(d);}}
 
 /* The decorative arrows are no longer used in the layout (18 Oct 2026). The image data was removed
@@ -830,7 +854,7 @@ function renderEmail(){
 
 function submit(){
   const fn=document.getElementById("fn").value.trim();
-  const em=document.getElementById("em").value.trim();
+  const emRaw=document.getElementById("em").value;
   const _waNum=document.getElementById("wa").value.trim(); const _cc=document.getElementById("cc"); const wa=_waNum?(((_cc&&_cc.value)||"")+" "+_waNum).trim():"";
   // Checkbox present = EU/UK visitor: consent is whatever they ticked (optional, never required).
   // No checkbox = outside EU/UK: consent via the note under the button.
@@ -840,7 +864,22 @@ function submit(){
   const cWa=document.getElementById("c-wa").checked;
   const err=document.getElementById("err");
   if(!fn){err.textContent="Please add your first name.";return;}
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){err.textContent="Please enter a valid email.";return;}
+  const chk=checkEmail(emRaw);
+  if(!chk.ok){
+    err.textContent="";
+    if(chk.suggest){
+      err.append("That email doesn't look right. Did you mean ");
+      const b=document.createElement("b"); b.textContent=chk.suggest; err.append(b);
+      err.append("? ");
+      const a=document.createElement("a"); a.href="#"; a.textContent="Yes, use that";
+      a.onclick=e=>{e.preventDefault();document.getElementById("em").value=chk.suggest;submit();};
+      err.append(a);
+    }else{
+      err.textContent="Please check your email address, it looks like something is missing.";
+    }
+    return;
+  }
+  const em=chk.email;
   err.textContent=""; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
   const r=computeRoute(answers); const utm=getUTM();
   const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,consent_region:consentRegion,whatsapp_consent:cWa&&!!wa,
@@ -850,12 +889,26 @@ function submit(){
     marketing_consent:(window.heConsent?!!window.heConsent.marketing:true)};
   fire("Lead"); if(r.qualified)fire("QualifiedLead");
   track("submit",{route:r.route,qualified:r.qualified});
-    postLead(payload).finally(()=>redirect(r,fn));
+  postLead(payload).then(res=>{
+    // The Function answers {ok:false, reason:"invalid_email"} when Systeme refused the address.
+    // Show it once so the person can correct a typo. If they insist on the same address a
+    // second time, let them through to the result page (the lead is in Supabase either way).
+    if(res&&res.ok===false&&res.reason==="invalid_email"&&rejectedEmail!==em){
+      rejectedEmail=em;
+      btn.disabled=false; btn.textContent="Send my results and the masterclass →";
+      err.textContent="That email address was not accepted. Please check it and try again.";
+      return;
+    }
+    redirect(r,fn);
+  });
 }
 function postLead(p){
+  // Resolves to the Function's JSON, or {} on any network/parse problem, so the quiz never gets stuck.
   return fetch("/.netlify/functions/lead",{method:"POST",
     headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(p)}).catch(e=>console.error("Lead post failed (continuing):",e));
+    body:JSON.stringify(p)})
+    .then(r=>r.json().catch(()=>({})))
+    .catch(e=>{console.error("Lead post failed (continuing):",e);return {};});
 }
 function redirect(r,fn){
   const base=CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D;
