@@ -458,16 +458,18 @@
   .cc:focus{outline:none;border-color:var(--action);}
   /* WhatsApp block (22 Oct 2026): always visible, same look as the other fields, never required.
      The consent box sits right under the number and lights up as soon as someone types. */
-  .wa-check{padding:10px 12px;border:1.5px solid transparent;border-radius:12px;transition:background .2s,border-color .2s;margin-bottom:6px;}
+  .wa-field{margin-bottom:4px;}
+  .wa-check{padding:8px 12px;border:1.5px solid transparent;border-radius:12px;transition:background .2s,border-color .2s;margin-bottom:4px;}
   .wa-check.lit{background:#FFF8EA;border-color:var(--gold);}
-  .wa-err{min-height:0;margin:0 auto 8px;max-width:520px;text-align:left;}
-  .wa-fine{margin:0 auto 16px;font-size:13px;color:var(--ink-soft);line-height:1.5;}
-  .wa-fine b{font-weight:600;color:var(--ink);}
+  .wa-err{min-height:0;margin:0 auto;max-width:520px;text-align:left;}
+  .wa-err:not(:empty){margin-bottom:8px;}
+  /* one note above the button: WhatsApp line, email consent (outside EU/UK) and the privacy promise */
+  .fine.note{margin:6px auto 18px;font-size:14.5px;color:var(--ink-soft);line-height:1.55;text-align:left;}
+  .fine.note b{font-weight:600;color:var(--ink);}
   .check{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--ink);margin:0 auto 14px;cursor:pointer;line-height:1.45;max-width:520px;text-align:left;}
   .check input{margin-top:1px;accent-color:var(--action);width:24px;height:24px;flex:none;}
   .fine{font-size:12px;color:var(--ink-faint);margin:8px auto 0;max-width:520px;}
   .fine a{color:var(--action-deep);}
-  .fine.privacy{margin-top:16px;max-width:52ch;font-size:13px;}
   .err{color:#b23a2e;font-size:14px;margin:8px 0 0;min-height:1em;}
   .err a{color:#b23a2e;font-weight:600;}
 
@@ -867,18 +869,17 @@ function renderEmail(){
        <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="Type Your Best Email Address" /></div>
        <div id="consent-email"></div>
        ${showWa?`
-       <div class="field"><label for="wa">WhatsApp number</label>
+       <div class="field wa-field"><label for="wa">WhatsApp number</label>
          <div class="cc-row">
            <select id="cc" class="cc" aria-label="Country code">${CC_OPTIONS}</select>
            <input id="wa" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="Your number" />
          </div>
        </div>
        <label class="check wa-check" id="wa-check"><input type="checkbox" id="c-wa" /><span>Yes, I'd like to connect with Kenny directly on WhatsApp.</span></label>
-       <div class="err wa-err" id="wa-err"></div>
-       <p class="fine wa-fine">Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. <b>No spam, ever.</b> Everything you share here is stored securely and handled with care and respect.</p>`:""}
+       <div class="err wa-err" id="wa-err"></div>`:""}
+       <p class="fine note" id="note"></p>
        <div class="err" id="err"></div>
        <div class="row center"><button class="btn-primary btn-cta" id="submit">Send my results and the masterclass →</button></div>
-       <p class="fine privacy">🔒 Your information is 100% secure and we will never spam you. Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.</p>
        <button class="btn-ghost back-sm" id="back">← Back</button>
      </div>`;
   // Email consent: EU/UK (same timezone check as the cookie banner) gets an unticked,
@@ -888,10 +889,16 @@ function renderEmail(){
   if(euConsent){
     wrap.querySelector("#consent-email").innerHTML=
       `<label class="check"><input type="checkbox" id="c-email" /><span>Yes, send me my results, the masterclass and Kenny's lessons by email.</span></label>`;
-  }else{
-    wrap.querySelector(".privacy").textContent=
-      "🔒 By continuing you agree to receive your results, the masterclass and lessons by email. Your information is 100% secure, we never spam, and you can unsubscribe anytime.";
   }
+  // One note above the button (22 Oct 2026): the WhatsApp line (when the field is shown), the email
+  // consent line for visitors outside EU/UK (that line IS their consent, so it must stay), and the
+  // privacy promise. Replaces the separate WhatsApp note and the line under the button.
+  wrap.querySelector("#note").innerHTML=
+    "🔒 "+
+    (showWa?"Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. ":"")+
+    (euConsent?"":"By continuing you agree to receive your results, the masterclass and lessons by email. ")+
+    "<b>No spam, ever.</b> Everything you share here is 100% secure, stored safely and handled with care and respect"+
+    (euConsent?". Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.":", and you can unsubscribe anytime.");
   swap(wrap);
   // WhatsApp: pre-select the country, light up the consent box as soon as someone types.
   const waIn=wrap.querySelector("#wa");
