@@ -80,6 +80,14 @@ daily as (
          coalesce(l.q, 0) as qualified
   from daily_starts s full outer join daily_submits l on s.day = l.day
 ),
+-- views = quiz page opened (one per session), so views -> starts shows who never tapped question 1
+views as (
+  select * from ev where ev = 'view'
+),
+ad_views as (
+  select coalesce(nullif(utm_content, ''), '(no utm_content)') as ad, count(distinct sid) as n
+  from views group by 1
+),
 ad_starts as (
   select coalesce(nullif(utm_content, ''), '(no utm_content)') as ad, count(distinct sid) as n
   from starts group by 1
@@ -90,11 +98,17 @@ ad_leads as (
   from ld group by 1
 ),
 by_ad as (
-  select coalesce(a.ad, l.ad) as ad,
+  select coalesce(v.ad, a.ad, l.ad) as ad,
+         coalesce(v.n, 0) as views,
          coalesce(a.n, 0) as starts,
          coalesce(l.submits, 0) as submits,
          coalesce(l.qualified, 0) as qualified
-  from ad_starts a full outer join ad_leads l on a.ad = l.ad
+  from ad_views v
+  full outer join ad_starts a on v.ad = a.ad
+  full outer join ad_leads  l on coalesce(v.ad, a.ad) = l.ad
+),
+dev_views as (
+  select coalesce(device, 'unknown') as device, count(distinct sid) as n from views group by 1
 ),
 dev_starts as (
   select coalesce(device, 'unknown') as device, count(distinct sid) as n from starts group by 1
@@ -104,8 +118,13 @@ dev_submits as (
   from ev where ev = 'submit' group by 1
 ),
 by_device as (
-  select coalesce(s.device, u.device) as device, coalesce(s.n, 0) as starts, coalesce(u.n, 0) as submits
-  from dev_starts s full outer join dev_submits u on s.device = u.device
+  select coalesce(v.device, s.device, u.device) as device,
+         coalesce(v.n, 0) as views,
+         coalesce(s.n, 0) as starts,
+         coalesce(u.n, 0) as submits
+  from dev_views v
+  full outer join dev_starts  s on v.device = s.device
+  full outer join dev_submits u on coalesce(v.device, s.device) = u.device
 ),
 routes as (
   select coalesce(route, '?') as route, count(*) as n, count(*) filter (where qualified) as qualified
@@ -129,8 +148,8 @@ select json_build_object(
   ),
   'funnel',    (select coalesce(json_agg(json_build_object('step', step, 'n', n) order by step), '[]'::json) from funnel),
   'daily',     (select coalesce(json_agg(json_build_object('day', day, 'starts', starts, 'submits', submits, 'qualified', qualified) order by day), '[]'::json) from daily),
-  'by_ad',     (select coalesce(json_agg(json_build_object('ad', ad, 'starts', starts, 'submits', submits, 'qualified', qualified) order by starts desc, submits desc), '[]'::json) from by_ad),
-  'by_device', (select coalesce(json_agg(json_build_object('device', device, 'starts', starts, 'submits', submits) order by starts desc), '[]'::json) from by_device),
+  'by_ad',     (select coalesce(json_agg(json_build_object('ad', ad, 'views', views, 'starts', starts, 'submits', submits, 'qualified', qualified) order by views desc, starts desc, submits desc), '[]'::json) from by_ad),
+  'by_device', (select coalesce(json_agg(json_build_object('device', device, 'views', views, 'starts', starts, 'submits', submits) order by views desc), '[]'::json) from by_device),
   'routes',    (select coalesce(json_agg(json_build_object('route', route, 'n', n, 'qualified', qualified) order by route), '[]'::json) from routes),
   'consent',   (select coalesce(json_agg(json_build_object('region', region, 'email_consent', email_consent, 'n', n) order by region, email_consent), '[]'::json) from consent)
 );
