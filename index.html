@@ -456,11 +456,13 @@
   .cc-row #wa{flex:1;}
   .cc{flex:0 0 auto;max-width:150px;font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);background:#fff;border:1.5px solid var(--line-strong);border-radius:12px;padding:13px 8px;}
   .cc:focus{outline:none;border-color:var(--action);}
-  /* WhatsApp is folded away behind a plain <details>, no script needed */
-  .wa-details{max-width:520px;margin:0 auto 14px;text-align:left;}
-  .wa-details summary{list-style:none;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;color:var(--action-sel);padding:4px 0;}
-  .wa-details summary::-webkit-details-marker{display:none;}
-  .wa-details[open] summary{margin-bottom:10px;}
+  /* WhatsApp block (22 Oct 2026): always visible, same look as the other fields, never required.
+     The consent box sits right under the number and lights up as soon as someone types. */
+  .wa-check{padding:10px 12px;border:1.5px solid transparent;border-radius:12px;transition:background .2s,border-color .2s;margin-bottom:6px;}
+  .wa-check.lit{background:#FFF8EA;border-color:var(--gold);}
+  .wa-err{min-height:0;margin:0 auto 8px;max-width:520px;text-align:left;}
+  .wa-fine{margin:0 auto 16px;font-size:13px;color:var(--ink-soft);line-height:1.5;}
+  .wa-fine b{font-weight:600;color:var(--ink);}
   .check{display:flex;gap:12px;align-items:flex-start;font-size:16px;color:var(--ink);margin:0 auto 14px;cursor:pointer;line-height:1.45;max-width:520px;text-align:left;}
   .check input{margin-top:1px;accent-color:var(--action);width:24px;height:24px;flex:none;}
   .fine{font-size:12px;color:var(--ink-faint);margin:8px auto 0;max-width:520px;}
@@ -668,8 +670,10 @@ const CC_OPTIONS=[
 ["+43","🇦🇹","Austria"],["+32","🇧🇪","Belgium"],["+359","🇧🇬","Bulgaria"],["+385","🇭🇷","Croatia"],["+357","🇨🇾","Cyprus"],["+420","🇨🇿","Czechia"],["+45","🇩🇰","Denmark"],["+372","🇪🇪","Estonia"],["+358","🇫🇮","Finland"],["+33","🇫🇷","France"],["+49","🇩🇪","Germany"],["+30","🇬🇷","Greece"],["+36","🇭🇺","Hungary"],["+354","🇮🇸","Iceland"],["+39","🇮🇹","Italy"],["+371","🇱🇻","Latvia"],["+370","🇱🇹","Lithuania"],["+352","🇱🇺","Luxembourg"],["+356","🇲🇹","Malta"],["+377","🇲🇨","Monaco"],["+31","🇳🇱","Netherlands"],["+47","🇳🇴","Norway"],["+48","🇵🇱","Poland"],["+351","🇵🇹","Portugal"],["+40","🇷🇴","Romania"],["+421","🇸🇰","Slovakia"],["+386","🇸🇮","Slovenia"],["+34","🇪🇸","Spain"],["+46","🇸🇪","Sweden"],["+41","🇨🇭","Switzerland"],
 ["+973","🇧🇭","Bahrain"],["+972","🇮🇱","Israel"],["+962","🇯🇴","Jordan"],["+965","🇰🇼","Kuwait"],["+961","🇱🇧","Lebanon"],["+968","🇴🇲","Oman"],["+974","🇶🇦","Qatar"],["+966","🇸🇦","Saudi Arabia"],["+90","🇹🇷","Turkey"],["+971","🇦🇪","United Arab Emirates"],
 ["+86","🇨🇳","China"],["+852","🇭🇰","Hong Kong"],["+91","🇮🇳","India"],["+62","🇮🇩","Indonesia"],["+81","🇯🇵","Japan"],["+60","🇲🇾","Malaysia"],["+977","🇳🇵","Nepal"],["+63","🇵🇭","Philippines"],["+65","🇸🇬","Singapore"],["+82","🇰🇷","South Korea"],["+94","🇱🇰","Sri Lanka"],["+886","🇹🇼","Taiwan"],["+66","🇹🇭","Thailand"],["+84","🇻🇳","Vietnam"],
-["+54","🇦🇷","Argentina"],["+55","🇧🇷","Brazil"],["+56","🇨🇱","Chile"],["+57","🇨🇴","Colombia"],["+506","🇨🇷","Costa Rica"],["+593","🇪🇨","Ecuador"],["+52","🇲🇽","Mexico"],["+507","🇵🇦","Panama"],["+51","🇵🇪","Peru"],["+598","🇺🇾","Uruguay"]
-].map(([c,f,n])=>`<option value="${c}">${f} ${n} (${c})</option>`).join("");
+["+54","🇦🇷","Argentina"],["+55","🇧🇷","Brazil"],["+56","🇨🇱","Chile"],["+57","🇨🇴","Colombia"],["+506","🇨🇷","Costa Rica"],["+593","🇪🇨","Ecuador"],["+52","🇲🇽","Mexico"],["+507","🇵🇦","Panama"],["+51","🇵🇪","Peru"],["+598","🇺🇾","Uruguay"],
+["+27","🇿🇦","South Africa"],["+230","🇲🇺","Mauritius"],["+254","🇰🇪","Kenya"],["+679","🇫🇯","Fiji"],["+1","🇹🇹","Trinidad and Tobago"],["+592","🇬🇾","Guyana"],["+597","🇸🇷","Suriname"],["+92","🇵🇰","Pakistan"],["+880","🇧🇩","Bangladesh"],
+["","🌍","Other (type your full number with +)"]
+].map(([c,f,n])=>`<option value="${c}" data-iso="${flagIso(f)}">${f} ${n}${c?" ("+c+")":""}</option>`).join("");
 function uuid(){return (crypto.randomUUID&&crypto.randomUUID())||"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==="x"?r:(r&0x3|0x8)).toString(16);});}
 const eventId=uuid();
 function getCookie(n){const m=document.cookie.match("(^|;)\\s*"+n+"\\s*=\\s*([^;]+)");return m?m.pop():"";}
@@ -698,6 +702,45 @@ function track(ev,extra){
 }
 track("view");
 function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
+
+/* ============================================================ WHATSAPP (22 Oct 2026)
+   The number field is always visible and never required. The country is pre-selected from the
+   visitor's time zone (then browser language). The number is sent as E.164 (+31612345678) so the
+   wa.me link in the lead notification always works. */
+const WA_ROUTES=["A","B","D"];   // routes that see the WhatsApp field; remove "D" to show it to qualified leads only
+function flagIso(f){const a=Array.from(f);if(a.length!==2)return "";return a.map(c=>String.fromCodePoint(c.codePointAt(0)-0x1F1E6+65)).join("");}
+const TZ_ISO={"Europe/London":"GB","Europe/Dublin":"IE","Europe/Amsterdam":"NL","Europe/Brussels":"BE","Europe/Berlin":"DE","Europe/Paris":"FR","Europe/Zurich":"CH","Europe/Vienna":"AT","Europe/Madrid":"ES","Europe/Rome":"IT","Europe/Lisbon":"PT","Europe/Stockholm":"SE","Europe/Oslo":"NO","Europe/Copenhagen":"DK","Europe/Helsinki":"FI","Europe/Warsaw":"PL","Europe/Prague":"CZ","Europe/Athens":"GR",
+  "Asia/Kolkata":"IN","Asia/Calcutta":"IN","Asia/Dubai":"AE","Asia/Singapore":"SG","Asia/Kuala_Lumpur":"MY","Asia/Karachi":"PK","Asia/Dhaka":"BD","Asia/Kathmandu":"NP","Asia/Colombo":"LK","Pacific/Auckland":"NZ","Pacific/Fiji":"FJ","Africa/Johannesburg":"ZA","Indian/Mauritius":"MU","Africa/Nairobi":"KE",
+  "America/Toronto":"CA","America/Vancouver":"CA","America/Edmonton":"CA","America/Winnipeg":"CA","America/Halifax":"CA","America/St_Johns":"CA","America/Regina":"CA","America/Mexico_City":"MX","America/Sao_Paulo":"BR","America/Argentina/Buenos_Aires":"AR","America/Bogota":"CO","America/Lima":"PE","America/Santiago":"CL","America/Port_of_Spain":"TT","America/Guyana":"GY","America/Paramaribo":"SR"};
+function guessIso(){
+  let tz="";try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||"";}catch(e){}
+  if(TZ_ISO[tz])return TZ_ISO[tz];
+  if(/^Australia\//.test(tz))return "AU";
+  if(/^America\/(New_York|Chicago|Denver|Los_Angeles|Phoenix|Detroit|Anchorage|Boise|Indiana|Kentucky)/.test(tz)||tz==="Pacific/Honolulu")return "US";
+  const lang=(navigator.language||"").split("-")[1];
+  return (lang||"US").toUpperCase();
+}
+function preselectCountry(sel){
+  const opt=Array.from(sel.options).find(o=>o.dataset.iso===guessIso());
+  if(opt)opt.selected=true;
+}
+/* Returns {ok, empty, e164}. Accepts "0612345678", "+31 6 12 34 56 78" or "0031...", with or without the selector. */
+function normalizeWa(cc,raw){
+  const s=(raw||"").trim();
+  if(!s)return {ok:true,empty:true,e164:""};
+  const digits=s.replace(/\D/g,"");
+  let e164;
+  if(s.startsWith("+"))e164="+"+digits;
+  else if(digits.startsWith("00"))e164="+"+digits.slice(2);
+  else if(cc){
+    let local=digits.replace(/^0+/,"");
+    if(cc==="+1"&&local.length===11&&local[0]==="1")local=local.slice(1);
+    e164=cc+local;
+  }
+  else return {ok:false,empty:false,e164:""};   // "Other" chosen, but no leading +
+  const n=e164.replace(/\D/g,"").length;
+  return {ok:n>=8&&n<=15,empty:false,e164};
+}
 
 /* ============================================================ EMAIL CHECK (20 Oct 2026)
    Systeme rejects an invalid address with a 422 and the contact is never created, so the
@@ -813,6 +856,8 @@ function renderEmail(){
   renderDots(); track("email");
   { const _ti=document.querySelector(".topimg"); if(_ti){_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png"; _ti.classList.add("email-pic");} }
   const wrap=document.createElement("div"); wrap.className="step";
+  // WhatsApp field (22 Oct 2026): shown for the routes in WA_ROUTES, always visible, never required.
+  const showWa=WA_ROUTES.includes(computeRoute(answers).route);
   wrap.innerHTML=
     `<div class="quiz">
        <img class="kenny-photo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png" alt="Kenny Clarys" />
@@ -821,16 +866,16 @@ function renderEmail(){
        <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" placeholder="Type Your First Name" /></div>
        <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="Type Your Best Email Address" /></div>
        <div id="consent-email"></div>
-       <details class="wa-details">
-         <summary>+ Add my WhatsApp number (optional)</summary>
-         <div class="field"><label for="wa">WhatsApp number</label>
-           <div class="cc-row">
-             <select id="cc" class="cc" aria-label="Country code">${CC_OPTIONS}</select>
-             <input id="wa" type="tel" autocomplete="tel" placeholder="Your number" />
-           </div>
+       ${showWa?`
+       <div class="field"><label for="wa">WhatsApp number</label>
+         <div class="cc-row">
+           <select id="cc" class="cc" aria-label="Country code">${CC_OPTIONS}</select>
+           <input id="wa" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="Your number" />
          </div>
-         <label class="check"><input type="checkbox" id="c-wa" /><span>You may message me on WhatsApp about my result (only if I filled it in).</span></label>
-       </details>
+       </div>
+       <label class="check wa-check" id="wa-check"><input type="checkbox" id="c-wa" /><span>Yes, I'd like to connect with Kenny directly on WhatsApp.</span></label>
+       <div class="err wa-err" id="wa-err"></div>
+       <p class="fine wa-fine">Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. <b>No spam, ever.</b> Everything you share here is stored securely and handled with care and respect.</p>`:""}
        <div class="err" id="err"></div>
        <div class="row center"><button class="btn-primary btn-cta" id="submit">Send my results and the masterclass →</button></div>
        <p class="fine privacy">🔒 Your information is 100% secure and we will never spam you. Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.</p>
@@ -848,6 +893,16 @@ function renderEmail(){
       "🔒 By continuing you agree to receive your results, the masterclass and lessons by email. Your information is 100% secure, we never spam, and you can unsubscribe anytime.";
   }
   swap(wrap);
+  // WhatsApp: pre-select the country, light up the consent box as soon as someone types.
+  const waIn=wrap.querySelector("#wa");
+  if(waIn){
+    preselectCountry(wrap.querySelector("#cc"));
+    const chk=wrap.querySelector("#wa-check");
+    waIn.addEventListener("focus",()=>chk.classList.add("lit"));
+    waIn.addEventListener("input",()=>chk.classList.toggle("lit",!!waIn.value.trim()));
+    waIn.addEventListener("blur",()=>{if(!waIn.value.trim())chk.classList.remove("lit");});
+    wrap.querySelector("#c-wa").addEventListener("change",()=>{wrap.querySelector("#wa-err").textContent="";});
+  }
   wrap.querySelector("#back").onclick=()=>{idx=TOTAL-1;renderQuestion();};
   wrap.querySelector("#submit").onclick=submit;
 }
@@ -855,13 +910,15 @@ function renderEmail(){
 function submit(){
   const fn=document.getElementById("fn").value.trim();
   const emRaw=document.getElementById("em").value;
-  const _waNum=document.getElementById("wa").value.trim(); const _cc=document.getElementById("cc"); const wa=_waNum?(((_cc&&_cc.value)||"")+" "+_waNum).trim():"";
+  const waIn=document.getElementById("wa"); const ccSel=document.getElementById("cc");
+  const waRes=waIn?normalizeWa(ccSel?ccSel.value:"",waIn.value):{ok:true,empty:true,e164:""};
+  const wa=waRes.e164;
   // Checkbox present = EU/UK visitor: consent is whatever they ticked (optional, never required).
   // No checkbox = outside EU/UK: consent via the note under the button.
   const cBox=document.getElementById("c-email");
   const cEmail=cBox?cBox.checked:true;
   const consentRegion=cBox?"eu":"row";
-  const cWa=document.getElementById("c-wa").checked;
+  const cWaBox=document.getElementById("c-wa"); const cWa=!!(cWaBox&&cWaBox.checked);
   const err=document.getElementById("err");
   if(!fn){err.textContent="Please add your first name.";return;}
   const chk=checkEmail(emRaw);
@@ -880,6 +937,25 @@ function submit(){
     return;
   }
   const em=chk.email;
+  // WhatsApp (22 Oct 2026): a typed number without the tick is never thrown away silently.
+  // One friendly nudge, or "continue without WhatsApp", so the lead is never lost.
+  const waErr=document.getElementById("wa-err");
+  if(waErr){
+    waErr.textContent="";
+    if(!waRes.empty&&!waRes.ok){
+      waErr.textContent=(ccSel&&!ccSel.value)?"Please type your full number starting with +, including the country code.":"Please check your number, it looks incomplete.";
+      waIn.focus(); return;
+    }
+    if(!waRes.empty&&!cWa){
+      const box=document.getElementById("wa-check");
+      waErr.textContent="One small tick above so Kenny may message you 🙏 ";
+      const a=document.createElement("a"); a.href="#"; a.textContent="Or continue without WhatsApp";
+      a.onclick=e=>{e.preventDefault();waIn.value="";box.classList.remove("lit");submit();};
+      waErr.append(a);
+      box.classList.add("lit"); box.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+  }
   err.textContent=""; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
   const r=computeRoute(answers); const utm=getUTM();
   const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,consent_region:consentRegion,whatsapp_consent:cWa&&!!wa,
