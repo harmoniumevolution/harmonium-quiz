@@ -702,7 +702,19 @@ function track(ev,extra){
       body:JSON.stringify(row)}).catch(()=>{});
   }catch(e){}
 }
-track("view");
+/* Page view only once the page is really on screen (22 Oct 2026). The Facebook and Instagram
+   in-app browsers pre-load landing pages before anyone taps the ad; those loads stay hidden and
+   were counted as views (dashboard 1.4-2.3x Meta's landing page views). A hidden or prerendered
+   page now waits until it becomes visible, and a page that is never shown counts nothing. */
+(function(){
+  let sent=false;
+  function sendView(){ if(sent)return; sent=true; track("view"); }
+  function hidden(){ return document.visibilityState!=="visible" || document.prerendering===true; }
+  if(!hidden()){ sendView(); return; }
+  function onShow(){ if(!hidden()){ sendView(); document.removeEventListener("visibilitychange",onShow); document.removeEventListener("prerenderingchange",onShow); } }
+  document.addEventListener("visibilitychange",onShow);
+  document.addEventListener("prerenderingchange",onShow);
+})();
 function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
 
 /* ============================================================ WHATSAPP (22 Oct 2026)
