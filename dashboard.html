@@ -134,6 +134,7 @@ function render(d,days){
   let h = '<div class="tiles">'
     + tile("Page views", num(t.views), "quiz page opened")
     + tile("Starts", num(t.starts), "answered question 1")
+    + tile("Start rate", t.views ? Math.round(100*t.starts/t.views)+"%" : "–", "starts ÷ page views")
     + tile("Submits", num(t.submits), "left their email")
     + tile("Completion", t.starts ? rate+"%" : "–", "submits ÷ starts")
     + tile("Qualified", num(t.qualified), pct(t.qualified,t.submits)+" of submits · "+num(t.advanced)+" advanced")
@@ -205,15 +206,15 @@ function daily(rows, days){
 
 function byAd(rows){
   if(!rows.length) return '<p class="muted">No data yet. Ads need utm_content in the link (the plan uses utm_content={{ad.name}}).</p>';
-  let h='<table><tr><th>Ad</th><th>Starts</th><th>Submits</th><th>Completion</th><th>Qualified</th><th>Qualified %</th></tr>';
-  rows.forEach(r=>{ h+='<tr><td title="'+esc(r.ad)+'">'+esc(r.ad)+'</td><td>'+num(r.starts)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td><td>'+num(r.qualified)+'</td><td>'+pct(r.qualified,r.submits)+'</td></tr>'; });
-  return h+'</table><p class="muted">Completion = submits ÷ starts for that ad. Qualified % = qualified ÷ submits. Compare this with cost per lead in Meta to see which ads bring people who finish and qualify.</p>';
+  let h='<table><tr><th>Ad</th><th>Views</th><th>Starts</th><th>Start %</th><th>Submits</th><th>Completion</th><th>Qualified</th><th>Qualified %</th></tr>';
+  rows.forEach(r=>{ h+='<tr><td title="'+esc(r.ad)+'">'+esc(r.ad)+'</td><td>'+num(r.views)+'</td><td>'+num(r.starts)+'</td><td>'+pct(r.starts,r.views)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td><td>'+num(r.qualified)+'</td><td>'+pct(r.qualified,r.submits)+'</td></tr>'; });
+  return h+'</table><p class="muted">Views = quiz page opened. Start % = starts ÷ views: an ad with many views and a low start % brings accidental clicks (often video, people tap to enlarge). Completion = submits ÷ starts. Qualified % = qualified ÷ submits. Put this next to link clicks and cost per lead in Meta.</p>';
 }
 function byDevice(rows){
   if(!rows.length) return '<p class="muted">No data yet.</p>';
-  let h='<table><tr><th>Device</th><th>Starts</th><th>Submits</th><th>Completion</th></tr>';
-  rows.forEach(r=>{ h+='<tr><td>'+esc(r.device)+'</td><td>'+num(r.starts)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td></tr>'; });
-  return h+'</table>';
+  let h='<table><tr><th>Device</th><th>Views</th><th>Starts</th><th>Start %</th><th>Submits</th><th>Completion</th></tr>';
+  rows.forEach(r=>{ h+='<tr><td>'+esc(r.device)+'</td><td>'+num(r.views)+'</td><td>'+num(r.starts)+'</td><td>'+pct(r.starts,r.views)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td></tr>'; });
+  return h+'</table><p class="muted">Start % = starts ÷ views. A much lower start % on mobile than on desktop points to load time in the Facebook or Instagram in-app browser.</p>';
 }
 function routes(rows){
   if(!rows.length) return '<p class="muted">No submits yet.</p>';
