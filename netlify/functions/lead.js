@@ -5,9 +5,14 @@
 //   SYSTEME_API_KEY        (Systeme public API key)
 //   SUPABASE_SERVICE_KEY   (Supabase service_role key)
 //   ZAPIER_D_HOOK          (optional: Zapier catch hook for experienced D-leads)
+//   RESEND_API_KEY         (optional: Resend API key for the lead notification to Kenny)
+//   NOTIFY_TO              (optional: the inbox that receives the lead notification)
+//   NOTIFY_FROM            (optional: sender, default "Harmonium Quiz <onboarding@resend.dev>")
+//   NOTIFY_ALL_QUALIFIED   (optional: "1" = also notify for qualified leads without a WhatsApp number)
 
 const SYSTEME_BASE = "https://api.systeme.io/api";
 const SUPABASE_URL = "https://amrvuxvlsebrznwcqhij.supabase.co";
+const CALL_LINK = "https://harmoniumevolution.com/apply";
 const crypto = require("crypto");
 
 // SHA-256 for Conversions API user data (email, first name). Normalized: trimmed + lowercased.
@@ -51,6 +56,23 @@ const LABELS = {
   harmonium: { yes: "Yes", onway: "On its way", notyet: "Not yet" },
 };
 
+// How the level reads inside a sentence of the WhatsApp message.
+const LEVEL_PHRASE = {
+  none: "you haven't started yet",
+  under1: "you've been playing for less than a year",
+  "1to5": "you've been playing for 1-5 years",
+  over5: "you've been playing for more than 5 years",
+};
+
+// Country hint by dial code. Only used when the WhatsApp number starts with a country code.
+const DIAL_CODES = {
+  "1": "US/Canada", "44": "UK", "61": "Australia", "64": "New Zealand", "91": "India",
+  "31": "Netherlands", "32": "Belgium", "49": "Germany", "33": "France", "34": "Spain",
+  "39": "Italy", "41": "Switzerland", "43": "Austria", "45": "Denmark", "46": "Sweden",
+  "47": "Norway", "351": "Portugal", "353": "Ireland", "358": "Finland", "27": "South Africa",
+  "52": "Mexico", "55": "Brazil", "65": "Singapore", "971": "UAE", "972": "Israel", "81": "Japan",
+};
+
 function label(group, val) {
   const map = LABELS[group] || {};
   if (Array.isArray(val)) return val.map((v) => map[v] || v).join(", ");
@@ -60,6 +82,148 @@ function label(group, val) {
 function sameEmail(a, b) {
   return (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
 }
+
+// ---------- Lead notification helpers (22 Oct 2026) ----------
+
+// "Play confidently with others" -> "play confidently with others"
+function goalPhrase(v) {
+  const l = label("sixmonths", Array.isArray(v) ? v[0] : v);
+  if (!l) return "take the next step with your harmonium";
+  return l.charAt(0).toLowerCase() + l.slice(1);
+}
+
+// The WhatsApp message Kenny sends by hand. Edit the wording here; name, level and goal
+// are filled in per lead.
+function whatsappMessage(p) {
+  const a = p.answers || {};
+  const name = (p.first_name || "").trim() || "there";
+  const level = LEVEL_PHRASE[a.level] || "you've started your harmonium journey";
+  const goal = goalPhrase(a.sixmonths);
+  return (
+    "Hi " + name + ", hope you are doing well. This is Kenny from Harmonium Evolution 🙏 " +
+    "I saw your quiz result: " + level + ", and you'd love to " + goal + ". " +
+    "Did you get a chance to watch the masterclass?\n\n" +
+    "If you want, we can look at your playing on a short call. It's free and without obligation, " +
+    "and it would be nice to see together how we can develop your harmonium playing. " +
+    "Book your call with this link: " + CALL_LINK
+  );
+}
+
+// wa.me needs the full international number as digits only ("+31 6 1234 5678" -> "31612345678").
+function waDigits(n) {
+  let d = String(n || "").trim();
+  if (d.startsWith("00")) d = d.slice(2);
+  return d.replace(/\D/g, "");
+}
+
+function dialCountry(digits) {
+  for (const len of [3, 2, 1]) {
+    const k = digits.slice(0, len);
+    if (DIAL_CODES[k]) return DIAL_CODES[k];
+  }
+  return "";
+}
+
+// Visitor location from Netlify's geo data (same source as the consent region in the quiz).
+function getGeo(event, context) {
+  const h = event.headers || {};
+  let g = (context && context.geo) || null;
+  if (!g && h["x-nf-geo"]) {
+    try {
+      g = JSON.parse(Buffer.from(h["x-nf-geo"], "base64").toString("utf8"));
+    } catch {
+      try { g = JSON.parse(h["x-nf-geo"]); } catch { g = null; }
+    }
+  }
+  const c = (g && g.country) || {};
+  return {
+    countryCode: c.code || h["x-country"] || "",
+    countryName: c.name || "",
+    city: (g && g.city) || "",
+    timezone: (g && g.timezone) || "",
+  };
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// Email to Kenny with the lead, the quiz answers and a one-tap WhatsApp link that opens the
+// chat with the message already typed. Sent through Resend.
+async function sendLeadNotification(p, geo) {
+  const a = p.answers || {};
+  const digits = waDigits(p.whatsapp);
+  const msg = whatsappMessage(p);
+  const waLink = digits ? "https://wa.me/" + digits + "?text=" + encodeURIComponent(msg) : "";
+  const dial = digits ? dialCountry(digits) : "";
+  const where = [geo.countryName || geo.countryCode, geo.city].filter(Boolean).join(", ");
+  const routeTxt = String(p.route || "").toUpperCase() + (p.advanced ? " advanced" : "");
+  const subject =
+    "Quiz lead: " + (p.first_name || p.email) +
+    (geo.countryCode ? " (" + geo.countryCode + ")" : "") +
+    " · route " + routeTxt + (digits ? " · WhatsApp" : " · no WhatsApp");
+
+  const rows = [
+    ["Name", p.first_name || ""],
+    ["Email", p.email || ""],
+    ["WhatsApp", p.whatsapp ? p.whatsapp + (dial ? " (" + dial + ")" : "") : "not left"],
+    ["Country", (where || "unknown") + (geo.timezone ? " · " + geo.timezone : "")],
+    ["Route", routeTxt + (p.qualified ? ", qualified" : ", not qualified")],
+    ["Plays", label("place", a.place)],
+    ["Level", label("level", a.level)],
+    ["Situation", label("blocker", a.blocker)],
+    ["Goal (6 months)", label("sixmonths", a.sixmonths)],
+    ["Practice time", label("time", a.time)],
+    ["Harmonium", label("harmonium", a.harmonium)],
+    ["Email consent", p.email_consent === true ? "yes" : "no"],
+    ["Ad (utm_content)", p.utm_content || ""],
+  ];
+  // Any other quiz answers (questions without a label map), shown raw.
+  const known = new Set(["place", "level", "blocker", "sixmonths", "time", "harmonium"]);
+  for (const k of Object.keys(a)) {
+    if (!known.has(k)) rows.push([k, Array.isArray(a[k]) ? a[k].join(", ") : String(a[k] ?? "")]);
+  }
+
+  const table = rows
+    .map(([k, v]) =>
+      "<tr><td style=\"padding:4px 14px 4px 0;color:#666;vertical-align:top;white-space:nowrap\">" +
+      escapeHtml(k) + "</td><td style=\"padding:4px 0\">" + escapeHtml(v) + "</td></tr>")
+    .join("");
+  const button = waLink
+    ? "<p style=\"margin:20px 0\"><a href=\"" + escapeHtml(waLink) + "\" style=\"display:inline-block;background:#25D366;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold\">Open WhatsApp with the message</a></p>"
+    : "<p style=\"margin:20px 0;color:#666\">No WhatsApp number left, reply by email instead.</p>";
+  const html =
+    "<div style=\"font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#222\">" +
+    "<h2 style=\"margin:0 0 12px\">New quiz lead: " + escapeHtml(p.first_name || p.email) + "</h2>" +
+    "<table style=\"border-collapse:collapse\">" + table + "</table>" + button +
+    "<p style=\"color:#666;margin:0 0 6px\">Message (copy it if the button doesn't open WhatsApp):</p>" +
+    "<pre style=\"white-space:pre-wrap;background:#f5f5f5;padding:12px;border-radius:8px;font-family:inherit\">" +
+    escapeHtml(msg) + "</pre></div>";
+  const text =
+    rows.map(([k, v]) => k + ": " + v).join("\n") +
+    (waLink ? "\n\nWhatsApp: " + waLink : "") + "\n\n" + msg;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + process.env.RESEND_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: process.env.NOTIFY_FROM || "Harmonium Quiz <onboarding@resend.dev>",
+      to: [process.env.NOTIFY_TO],
+      subject,
+      html,
+      text,
+    }),
+  });
+  if (!res.ok) console.error("Notify failed:", res.status, await res.text());
+  else console.log("Notify sent to", process.env.NOTIFY_TO);
+  return res.ok;
+}
+
+// ---------- Systeme helpers ----------
 
 let TAG_CACHE = null;
 
@@ -93,7 +257,7 @@ async function findContactByEmail(email) {
   return items.find((c) => sameEmail(c.email, email)) || null;
 }
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
   const cors = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -128,6 +292,11 @@ exports.handler = async (event) => {
   p.email = email; // normalized address for Supabase, Systeme and CAPI
   let systemeEmailInvalid = false; // set when Systeme itself still refuses the address
 
+  // Country of the visitor (22 Oct 2026), from Netlify's geo data. Stored as ISO code in
+  // quiz_leads.country and shown in the lead notification.
+  const geo = getGeo(event, context);
+  if (geo.countryCode) p.country = geo.countryCode;
+
   // Marketing consent, set by the quiz cookie banner. true for non-EU and
   // EU/UK visitors who accepted; false ONLY when an EU/UK visitor declined
   // marketing cookies. Undefined on older quiz builds -> treated as allowed.
@@ -144,10 +313,13 @@ exports.handler = async (event) => {
     p.email_consent === true;
 
   // 1) Supabase is the source of truth. Store first, best effort.
-  //    NOTE: quiz_leads needs a boolean column "marketing_consent".
+  //    NOTE: quiz_leads needs the boolean column "marketing_consent" and, since 22 Oct, the
+  //    text column "country". If "country" doesn't exist yet, the insert is retried without
+  //    it, so a missing column never loses a lead.
+  //    SQL once: alter table quiz_leads add column if not exists country text;
   let supabaseOk = false;
-  try {
-    const r = await fetch(SUPABASE_URL + "/rest/v1/quiz_leads", {
+  const insertLead = (row) =>
+    fetch(SUPABASE_URL + "/rest/v1/quiz_leads", {
       method: "POST",
       headers: {
         apikey: process.env.SUPABASE_SERVICE_KEY,
@@ -155,11 +327,23 @@ exports.handler = async (event) => {
         "Content-Type": "application/json",
         Prefer: "return=minimal",
       },
-      body: JSON.stringify(p),
+      body: JSON.stringify(row),
     });
+  try {
+    let r = await insertLead(p);
+    if (!r.ok) {
+      const t = await r.text();
+      if (r.status === 400 && p.country && /country/i.test(t)) {
+        console.error("quiz_leads has no country column yet, retrying without it. Run: alter table quiz_leads add column country text;");
+        const { country, ...rest } = p; // eslint-disable-line no-unused-vars
+        r = await insertLead(rest);
+        if (!r.ok) console.error("Supabase insert failed:", r.status, await r.text());
+      } else {
+        console.error("Supabase insert failed:", r.status, t);
+      }
+    }
     supabaseOk = r.ok;
-    if (!r.ok) console.error("Supabase insert failed:", r.status, await r.text());
-    else console.log("Supabase insert:", r.status, "route", p.route, "qualified", !!p.qualified, "consent", p.email_consent === true);
+    if (r.ok) console.log("Supabase insert:", r.status, "route", p.route, "qualified", !!p.qualified, "consent", p.email_consent === true, "country", p.country || "?");
   } catch (e) {
     console.error("Supabase insert error:", e);
   }
@@ -285,6 +469,24 @@ exports.handler = async (event) => {
     }
   }
 
+  // 2c) Lead notification to Kenny by email (22 Oct 2026), with the quiz answers, the country
+  //     and a one-tap WhatsApp link with the message already typed. Sent when the lead left a
+  //     WhatsApp number (the quiz only fills p.whatsapp with WhatsApp consent). Set
+  //     NOTIFY_ALL_QUALIFIED=1 to also get qualified leads without a number. Best effort;
+  //     nothing is sent when RESEND_API_KEY or NOTIFY_TO is unset.
+  let notifyOk = false;
+  const wantNotify =
+    !!p.whatsapp || (process.env.NOTIFY_ALL_QUALIFIED === "1" && !!p.qualified);
+  if (wantNotify && process.env.RESEND_API_KEY && process.env.NOTIFY_TO) {
+    try {
+      notifyOk = await sendLeadNotification(p, geo);
+    } catch (e) {
+      console.error("Notify error:", e);
+    }
+  } else if (wantNotify) {
+    console.log("Notify skipped: set RESEND_API_KEY and NOTIFY_TO in Netlify env vars");
+  }
+
   // 3) Conversions API (server-side). Mirrors the browser Lead/QualifiedLead with the
   //    SAME event_id so Meta deduplicates. Secrets from env: META_PIXEL_ID, META_CAPI_TOKEN.
   //    Best effort; never blocks the response.
@@ -343,7 +545,7 @@ exports.handler = async (event) => {
     console.error("CAPI error:", e);
   }
 
-  console.log("Lead done:", { supabase: supabaseOk, systeme: systemeOk, capi: capiOk, emailRefused: systemeEmailInvalid });
+  console.log("Lead done:", { supabase: supabaseOk, systeme: systemeOk, capi: capiOk, notify: notifyOk, emailRefused: systemeEmailInvalid });
 
   return {
     statusCode: 200,
@@ -357,6 +559,7 @@ exports.handler = async (event) => {
       consent: marketingOk,
       d_experienced: expD,
       hook: hookOk,
+      notify: notifyOk,
     }),
   };
 };
