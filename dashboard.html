@@ -78,12 +78,15 @@
 <script>
 /* ---------- settings ---------- */
 const STATS_URL = "/.netlify/functions/stats";
+/* Labels follow the live quiz order in index.html (10 questions since 19 Oct 2026, 10:00).
+   Before that the quiz had 11 questions (practice time as 10, ready to invest as 11), so
+   "all time" still holds a few old sessions at step 11; those are not shown. */
 const Q_LABELS = {
-  0:"Page view", 1:"1 Where you play", 2:"2 How long playing", 3:"3 How learned", 4:"4 Six months from now",
+  0:"Page view", 1:"1 Where you play", 2:"2 How learned", 3:"3 How long playing", 4:"4 Six months from now",
   5:"5 Learn next", 6:"6 Holding you back", 7:"7 Music check", 8:"8 Notation", 9:"9 Has harmonium",
-  10:"10 Practice time", 11:"11 Ready to invest", 100:"Email step seen", 101:"Submitted"
+  10:"10 Ready to invest", 100:"Email step seen", 101:"Submitted"
 };
-const FUNNEL_STEPS = [0,1,2,3,4,5,6,7,8,9,10,11,100,101];
+const FUNNEL_STEPS = [0,1,2,3,4,5,6,7,8,9,10,100,101];
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
@@ -163,7 +166,7 @@ function funnel(rows){
       +'<div class="n">'+num(n)+'</div><div class="p">'+(s===0?"–":pct(n,base))+'</div><div class="d">'+dropTxt+'</div></div>';
     if(s!==0) prev=n; else prev=null;
   });
-  h+='<p class="muted">Starts = answered question 1. A session counts once per step, so going back and forth does not inflate the numbers. Page views and starts come from the quiz page, submits from the lead table.</p>';
+  h+='<p class="muted">Starts = answered question 1. A question counts when it is answered, so "10 Ready to invest" equals "Email step seen": answering the last question opens the email step. A session counts once per step, so going back and forth does not inflate the numbers. Page views and starts come from the quiz page, submits from the lead table. Numbers before 19 Oct 2026 follow the old 11-question order.</p>';
   return h;
 }
 
