@@ -14,7 +14,8 @@
 //   3. lead opzoeken in Supabase quiz_leads op e-mail: fbc, fbp, marketing_consent, country, first_name
 //   4. dedup op referentie via tabel manual_sales (zie manual_sales.sql)
 //   5. Purchase naar de Conversions API (overgeslagen bij geweigerde marketing, zoals lead.js)
-//   6. tag "customer" zetten in Systeme, op naam opgezocht zoals in lead.js (stap 35)
+//   6. tag "customer" zetten in Systeme, op naam opgezocht zoals in lead.js (stap 35);
+//      bestaat het contact nog niet (koper zonder quiz), dan wordt het aangemaakt met voornaam
 //   7. rij loggen in manual_sales
 //
 // Omgevingsvariabelen in Netlify:
@@ -240,28 +241,51 @@ async function getTagMap() {
   return map;
 }
 
+// Anders dan in lead.js wordt een foutstatus van Systeme hier als fout gemeld,
+// niet als "niet gevonden", zodat je in het Zap-antwoord ziet wat er echt gebeurde.
 async function findContactByEmail(email) {
   const res = await systeme("/contacts?email=" + encodeURIComponent(email));
-  if (!res.ok) return null;
+  if (!res.ok) throw new Error("Systeme contact lookup " + res.status + ": " + (await res.text()));
   const data = await res.json();
   const items = Array.isArray(data) ? data : data.items || [];
   return items.find((c) => sameEmail(c.email, email)) || null;
 }
 
+// Contact aanmaken als het nog niet bestaat (koper die nooit de quiz deed), met voornaam.
+async function createContact(email, firstName) {
+  const res = await systeme("/contacts", { method: "POST", body: JSON.stringify({ email }) });
+  if (!res.ok) throw new Error("Systeme contact aanmaken " + res.status + ": " + (await res.text()));
+  const created = await res.json();
+  if (firstName && created && created.id) {
+    const patch = await systeme("/contacts/" + created.id, {
+      method: "PATCH",
+      contentType: "application/merge-patch+json",
+      body: JSON.stringify({ fields: [{ slug: "first_name", value: firstName }] }),
+    });
+    if (!patch.ok) console.error("Systeme first_name update failed:", patch.status, await patch.text());
+  }
+  return created;
+}
+
 // Tag "customer" zetten zodat de koper uit de verkoopreeksen valt (stap 35).
-async function tagCustomer(email) {
+async function tagCustomer(email, firstName) {
   if (!process.env.SYSTEME_API_KEY) return "overgeslagen (SYSTEME_API_KEY ontbreekt)";
   const tagName = (process.env.SYSTEME_CUSTOMER_TAG || "customer").toLowerCase();
-  const contact = await findContactByEmail(email);
-  if (!contact) return "contact niet gevonden in Systeme (koper zat niet in de quiz?)";
+  let contact = await findContactByEmail(email);
+  let created = false;
+  if (!contact) {
+    contact = await createContact(email, firstName);
+    created = true;
+  }
+  if (!contact || !contact.id) return "contact niet gevonden en aanmaken gaf geen id terug";
   const tagId = (await getTagMap())[tagName];
-  if (!tagId) return 'tag "' + tagName + '" niet gevonden in Systeme';
+  if (!tagId) return 'tag "' + tagName + '" niet gevonden in Systeme' + (created ? " (contact wel aangemaakt)" : "");
   const t = await systeme("/contacts/" + contact.id + "/tags", {
     method: "POST",
     body: JSON.stringify({ tagId }),
   });
   if (!t.ok) throw new Error("Systeme tag " + t.status + ": " + (await t.text()));
-  return 'tag "' + tagName + '" gezet op contact ' + contact.id;
+  return (created ? "contact aangemaakt, " : "") + 'tag "' + tagName + '" gezet op contact ' + contact.id;
 }
 
 // ---------- handler ----------
@@ -361,7 +385,7 @@ exports.handler = async (event) => {
   // 6. Systeme-tag (niet fataal)
   let systemeNote;
   try {
-    systemeNote = await tagCustomer(email);
+    systemeNote = await tagCustomer(email, firstName);
   } catch (e) {
     console.error("Systeme tag error:", e);
     systemeNote = "fout: " + e.message;
