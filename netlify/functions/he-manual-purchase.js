@@ -37,7 +37,9 @@
 //   "product": "Harmonium Evolution Complete", optioneel
 //   "reference": "WISE-20261027-JANE",         verplicht, uniek (Revolut/Wise-referentie)
 //   "plan": false,                             true bij afbetaling -> waarde x0,75 (zoals he-purchase.js)
-//   "paid_at": "2026-10-27T10:15:00+01:00",    echte betaalmoment in ISO; leeg = nu
+//   "paid_at": "27-10-2026 10:15",             echte betaalmoment; leeg = nu. Mag ook "27/10/2026",
+//                                              "2026-10-27 10:15" of ISO met tijdzone. Zonder tijdzone
+//                                              = Nederlandse tijd (zomer/wintertijd automatisch)
 //   "payment_method": "wise",                  vrij veld, alleen voor de log
 //   "consent": true,                           optioneel; false forceert "geen Meta-event"
 //   "test_event_code": "TEST12345"             optioneel, per rij naar Test Events
@@ -64,6 +66,64 @@ function sameEmail(a, b) {
 
 const norm = (v) => (v == null ? "" : String(v).trim().toLowerCase());
 const isTrue = (v) => ["true", "1", "yes", "ja", "y"].includes(norm(v));
+
+// ---------- datum uit de sheet ----------
+// Google Sheets zet een getypte datum om naar zijn eigen notatie (bv. "27-10-2026 9:45:00"),
+// dus hier worden de gangbare vormen geaccepteerd:
+//   ISO met tijdzone      2026-10-27T10:15:00+01:00  (wordt letterlijk gelezen)
+//   jaar eerst            2026-10-27 10:15 / 2026-10-27
+//   Nederlands            27-10-2026 10:15 / 27/10/2026 / 27.10.2026
+//   Amerikaans            10/27/2026 10:15 (herkend als de tweede waarde groter dan 12 is)
+// Zonder tijdzone wordt de tijd gelezen als Nederlandse tijd (Europe/Amsterdam).
+
+function amsterdamOffsetMinutes(date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam", hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(date);
+  const g = {};
+  for (const p of parts) g[p.type] = p.value;
+  const asUTC = Date.UTC(+g.year, +g.month - 1, +g.day, +g.hour, +g.minute, +g.second);
+  return (asUTC - date.getTime()) / 60000;
+}
+
+// Nederlandse klokstand -> echt tijdstip, ook op de dag van de zomer/wintertijdwissel.
+function fromAmsterdam(y, mo, d, h, mi, s) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi, s);
+  const off1 = amsterdamOffsetMinutes(new Date(guess));
+  const utc1 = guess - off1 * 60000;
+  const off2 = amsterdamOffsetMinutes(new Date(utc1));
+  return new Date(off1 === off2 ? utc1 : guess - off2 * 60000);
+}
+
+function parsePaidAt(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return new Date();
+
+  // ISO met expliciete tijdzone: JS leest dit correct.
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})$/.test(s)) return new Date(s);
+
+  const time = "(?:[ T](\\d{1,2}):(\\d{2})(?::(\\d{2}))?)?$";
+  let y, mo, d, h = 0, mi = 0, sec = 0;
+
+  let m = s.match(new RegExp("^(\\d{4})-(\\d{1,2})-(\\d{1,2})" + time));
+  if (m) {
+    [y, mo, d] = [+m[1], +m[2], +m[3]];
+    [h, mi, sec] = [+(m[4] || 0), +(m[5] || 0), +(m[6] || 0)];
+  } else {
+    m = s.match(new RegExp("^(\\d{1,2})[-/.](\\d{1,2})[-/.](\\d{4})" + time));
+    if (!m) return new Date(NaN);
+    const a = +m[1], b = +m[2];
+    y = +m[3];
+    if (a > 12) [d, mo] = [a, b];        // 27-10-2026: dag eerst
+    else if (b > 12) [mo, d] = [a, b];   // 10/27/2026: maand eerst (Amerikaans)
+    else [d, mo] = [a, b];               // twijfel: Nederlands, dag eerst
+    [h, mi, sec] = [+(m[4] || 0), +(m[5] || 0), +(m[6] || 0)];
+  }
+  if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59) return new Date(NaN);
+  return fromAmsterdam(y, mo, d, h, mi, sec);
+}
 
 const json = (statusCode, body) => ({
   statusCode,
@@ -241,9 +301,11 @@ exports.handler = async (event) => {
   if (!/^[A-Z]{3}$/.test(currency)) return json(400, { error: "currency moet 3 letters zijn (USD, EUR)" });
   if (!reference) return json(400, { error: "reference ontbreekt (Revolut/Wise-referentie)" });
 
-  const paidAt = body.paid_at ? new Date(body.paid_at) : new Date();
+  const paidAt = parsePaidAt(body.paid_at);
   if (Number.isNaN(paidAt.getTime())) {
-    return json(400, { error: "paid_at is geen geldige datum; gebruik ISO, bv. 2026-10-27T10:15:00+01:00" });
+    return json(400, {
+      error: 'paid_at "' + String(body.paid_at) + '" is geen geldige datum; gebruik bv. 27-10-2026 10:15',
+    });
   }
   const ageDays = (Date.now() - paidAt.getTime()) / 86400000;
   if (ageDays > MAX_AGE_DAYS) {
