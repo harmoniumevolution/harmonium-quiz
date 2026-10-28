@@ -511,9 +511,6 @@
   .wa-check.lit{background:#FFF8EA;border-color:var(--gold);}
   .wa-err{min-height:0;margin:0 auto;max-width:520px;text-align:left;}
   .wa-err:not(:empty){margin-bottom:8px;}
-  /* Variant b (28 Oct 2026): the WhatsApp block is folded behind one line until someone taps it. */
-  .wa-open{display:block;margin:0 auto 12px;max-width:520px;text-align:center;color:var(--action-sel);font-weight:500;line-height:1.4;}
-  .wa-open:hover{color:var(--action-deep);}
   /* one note above the button: WhatsApp line, email consent (outside EU/UK) and the privacy promise */
   .fine.note{margin:6px auto 18px;font-size:14.5px;color:var(--ink-soft);line-height:1.55;text-align:left;}
   .fine.note b{font-weight:600;color:var(--ink);}
@@ -675,7 +672,10 @@ const CONFIG = {
   },
   META_PIXEL_ID: "1777296816750878"
 };
-/* Result names, shown as a teaser on the email step in variant b (28 Oct 2026). */
+/* A/B test on the email step (28 Oct 2026): variant b shows the result name as a teaser above the
+   form. Set TEASER_TEST to false and everyone sees the page as it was. The WhatsApp block is the
+   same in both variants (always open, as before). */
+const TEASER_TEST = true;
 const RESULT_NAMES = { A:"The Inspired Beginner", B:"The Rising Practitioner", D:"The Curious Explorer" };
 
 /* ============================================================ QUIZ */
@@ -748,7 +748,7 @@ function fire(ev,ex){if(!window.fbq)return;const m=FB_STANDARD[ev]?"track":"trac
    28 Oct 2026: every row also carries
    - region   "eu" (sees the cookie banner and the email checkbox) or "row"
    - variant  "a" or "b", a 50/50 split per session, for A/B tests on the page
-   and these events were added: banner, consent, field, err, email_leave, wa_open.
+   and these events were added: banner, consent, field, err, email_leave.
    The columns region, variant, route, qualified, detail and ms must exist in quiz_events
    before this file goes live, otherwise Supabase rejects the rows (silently). */
 const EV_URL="https://amrvuxvlsebrznwcqhij.supabase.co/rest/v1/quiz_events";
@@ -952,10 +952,10 @@ function renderEmail(){
   const wrap=document.createElement("div"); wrap.className="step";
   // WhatsApp field (22 Oct 2026): shown for the routes in WA_ROUTES, always visible, never required.
   const showWa=WA_ROUTES.includes(r0.route);
-  // Variant b (28 Oct 2026): the result name as a teaser above the form, and the WhatsApp block
-  // folded behind one line. Variant a is the page as it was. Both are measured per session.
+  // Variant b (28 Oct 2026): the result name as a teaser above the form. Variant a is the page
+  // as it was. Both are measured per session (variant column in quiz_events).
   const resultName=RESULT_NAMES[r0.route]||"";
-  const isB=EV_VARIANT==="b"&&!!resultName;
+  const isB=TEASER_TEST&&EV_VARIANT==="b"&&!!resultName;
   const head=isB
     ? `<span class="q-count">Your result</span>
        <h1 class="q result-big">${resultName}</h1>
@@ -963,8 +963,6 @@ function renderEmail(){
     : `<h1 class="q result-big"><span class="chk">✓</span> Your result is ready.</h1>
        <p class="sublabel one email-sub">Where should I send you the free masterclass <br class="desk-br">+ your personal quiz results?</p>`;
   const waBlock=showWa?`
-       ${isB?`<button type="button" class="btn-ghost wa-open" id="wa-open">📱 Want Kenny to message you personally on WhatsApp? Add your number</button>`:""}
-       <div id="wa-block"${isB?" hidden":""}>
        <div class="field wa-field"><label for="wa">WhatsApp number</label>
          <div class="cc-row">
            <select id="cc" class="cc" aria-label="Country code">${CC_OPTIONS}</select>
@@ -972,8 +970,7 @@ function renderEmail(){
          </div>
        </div>
        <label class="check wa-check" id="wa-check"><input type="checkbox" id="c-wa" /><span>Yes, I'd like to connect with Kenny directly on WhatsApp.</span></label>
-       <div class="err wa-err" id="wa-err"></div>
-       </div>`:"";
+       <div class="err wa-err" id="wa-err"></div>`:"";
   wrap.innerHTML=
     `<div class="quiz">
        <img class="kenny-photo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png" alt="Kenny Clarys" />
@@ -1000,16 +997,13 @@ function renderEmail(){
   // privacy promise. Replaces the separate WhatsApp note and the line under the button.
   wrap.querySelector("#note").innerHTML=
     "🔒 "+
-    (showWa&&!isB?"Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. ":"")+
+    (showWa?"Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. ":"")+
     (euConsent?"":"By continuing you agree to receive your results, the masterclass and lessons by email. ")+
     "<b>No spam, ever.</b> Everything you share here is 100% secure, stored safely and handled with care and respect"+
     (euConsent?". Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.":", and you can unsubscribe anytime.");
   swap(wrap);
   // Which fields people actually reach, once per session (28 Oct 2026).
   ["fn","em","wa"].forEach(id=>{const el=wrap.querySelector("#"+id); if(el) el.addEventListener("focus",()=>track("field",{detail:id}),{once:true});});
-  // Variant b: unfold the WhatsApp block on tap.
-  const waOpen=wrap.querySelector("#wa-open");
-  if(waOpen){ waOpen.onclick=()=>{ waOpen.remove(); const blk=wrap.querySelector("#wa-block"); if(blk) blk.hidden=false; track("wa_open"); const w=wrap.querySelector("#wa"); if(w) w.focus(); }; }
   // WhatsApp: pre-select the country, light up the consent box as soon as someone types.
   const waIn=wrap.querySelector("#wa");
   if(waIn){
