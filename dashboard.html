@@ -148,6 +148,7 @@ function render(d,days){
     + '<div class="card"><h2>Routes</h2>' + routes(d.routes||[]) + '</div>'
     + '</div>';
   h += '<div class="card"><h2>Email consent</h2>' + consent(d.consent||[]) + '</div>';
+  if(d.extra) h += extra(d.extra); else h += '<p class="muted">The region, cookie banner and email step blocks appear once quiz_stats_extra() exists in Supabase (28 Oct 2026).</p>';
   $("#app").innerHTML=h;
 }
 function tile(k,v,s){ return '<div class="tile"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s)+'</div></div>'; }
@@ -214,7 +215,7 @@ function byDevice(rows){
   if(!rows.length) return '<p class="muted">No data yet.</p>';
   let h='<table><tr><th>Device</th><th>Views</th><th>Starts</th><th>Start %</th><th>Submits</th><th>Completion</th></tr>';
   rows.forEach(r=>{ h+='<tr><td>'+esc(r.device)+'</td><td>'+num(r.views)+'</td><td>'+num(r.starts)+'</td><td>'+pct(r.starts,r.views)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td></tr>'; });
-  return h+'</table><p class="muted">Start % = starts ÷ views. A much lower start % on mobile than on desktop points to load time in the Facebook or Instagram in-app browser.</p>';
+  return h+'</table><p class="muted">Start % = starts ÷ views. A much lower start % on mobile than on desktop points to load time in the Facebook or Instagram in-app browser. Since 22 Oct 2026 a page view only counts once the page is really on screen, so earlier start percentages were lower than reality.</p>';
 }
 function routes(rows){
   if(!rows.length) return '<p class="muted">No submits yet.</p>';
@@ -234,6 +235,87 @@ function consent(rows){
   };
   let h='<table><tr><th>Group</th><th>Submits</th><th>Share</th></tr>';
   rows.forEach(r=>{ h+='<tr><td>'+esc(lbl(r))+'</td><td>'+num(r.n)+'</td><td>'+pct(r.n,total)+'</td></tr>'; });
+  return h+'</table>';
+}
+
+/* ---------- 28 Oct 2026: region, cookie banner, email step, blocked submits, leaves, timing ---------- */
+const REGION_LBL = { eu:"EU/UK (sees the cookie banner)", row:"Outside EU/UK", "":"Before 28 Oct 2026 (region not recorded)" };
+const FIELD_LBL  = { fn:"First name", em:"Email", wa:"WhatsApp number" };
+const ERR_LBL    = { fn:"No first name", em:"Email looked wrong", em_suggest:"Email typo, suggestion shown", wa_number:"WhatsApp number incomplete", wa_tick:"Number typed, WhatsApp box not ticked", em_systeme:"Email refused by Systeme" };
+function leaveLbl(d){
+  if(!d || d==="no leave event") return "No leave event (app closed, or came back and submitted later)";
+  const m=/fn(\d)_em(\d)_wa(\d)/.exec(d); if(!m) return d;
+  const parts=[]; if(m[1]==="1")parts.push("name"); if(m[2]==="1")parts.push("email"); if(m[3]==="1")parts.push("number");
+  return parts.length ? "Typed: "+parts.join(" + ") : "Typed nothing";
+}
+function extra(x){
+  let h='';
+  // region
+  const reg=x.by_region||[];
+  if(reg.length){
+    h+='<div class="card"><h2>Start rate per region</h2><table><tr><th>Region</th><th>Views</th><th>Starts</th><th>Start %</th><th>Submits</th><th>Completion</th><th>Qualified</th></tr>';
+    reg.forEach(r=>{ h+='<tr><td>'+esc(REGION_LBL[r.region||""]||r.region)+'</td><td>'+num(r.views)+'</td><td>'+num(r.starts)+'</td><td>'+pct(r.starts,r.views)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.starts)+'</td><td>'+num(r.qualified)+'</td></tr>'; });
+    h+='</table>';
+    h+=regionDaily(x.region_daily||[]);
+    h+='<p class="muted">Region comes from the browser time zone, the same check the cookie banner uses. Rows before 28 Oct 2026 have no region: they are the baseline from before the banner moved behind question 1.</p></div>';
+  }
+  // banner
+  const b=x.banner||{};
+  if(b.shown){
+    h+='<div class="card"><h2>Cookie banner (EU/UK, shown after answer 1)</h2><div class="tiles">'
+      + tile("Shown", num(b.shown), "EU/UK first visits that answered question 1")
+      + tile("Accept all", num(b.marketing), pct(b.marketing,b.shown)+" of shown · pixel on")
+      + tile("Essential only", num(b.essential), pct(b.essential,b.shown)+" of shown · no pixel")
+      + tile("No answer", num(b.no_answer), pct(b.no_answer,b.shown)+" of shown")
+      + tile("Went on to Q2", num(b.continued), pct(b.continued,b.shown)+" of shown")
+      + '</div><p class="muted">"Accept all" is the share of EU/UK quiz takers Meta can see. "Went on to Q2" tells you what the banner costs now that it no longer covers question 1.</p></div>';
+  }
+  // email step
+  const es=(x.email_step||[]);
+  if(es.length){
+    const name={A:"A · beginner",B:"B · rising practitioner",D:"D · free tips"};
+    const tot={a:{s:0,n:0,w:0},b:{s:0,n:0,w:0}};
+    h+='<div class="card"><h2>Email step · by route and variant (since 28 Oct 2026)</h2><table><tr><th>Route</th><th>Variant</th><th>Saw email step</th><th>Submits</th><th>Submit %</th><th>Opened WhatsApp (b)</th></tr>';
+    es.forEach(r=>{ if(tot[r.variant]){tot[r.variant].s+=r.saw_email||0;tot[r.variant].n+=r.submits||0;tot[r.variant].w+=r.wa_open||0;}
+      h+='<tr><td>'+esc(name[r.route]||r.route||"unknown")+'</td><td>'+esc(r.variant||"–")+'</td><td>'+num(r.saw_email)+'</td><td>'+num(r.submits)+'</td><td>'+pct(r.submits,r.saw_email)+'</td><td>'+(r.variant==="b"?num(r.wa_open)+" ("+pct(r.wa_open,r.saw_email)+")":"–")+'</td></tr>'; });
+    ["a","b"].forEach(v=>{ const t=tot[v]; if(t.s) h+='<tr><td><b>All routes</b></td><td><b>'+v+'</b></td><td><b>'+num(t.s)+'</b></td><td><b>'+num(t.n)+'</b></td><td><b>'+pct(t.n,t.s)+'</b></td><td>'+(v==="b"?'<b>'+num(t.w)+' ('+pct(t.w,t.s)+')</b>':"–")+'</td></tr>'; });
+    h+='</table><p class="muted">Variant a = the email step as it was (WhatsApp fields open). Variant b = result name as a teaser, WhatsApp folded behind one line. 50/50 per session. Judge after at least 100 sessions per variant.</p></div>';
+  }
+  // why people leave: fields, errors, leaves
+  const f=x.fields||{}, fr=f.rows||[], er=x.errors||[], lv=x.leaves||[];
+  if(f.saw_email || er.length || lv.length){
+    h+='<div class="card"><h2>Why people leave the email step (since 28 Oct 2026)</h2><div class="grid2">';
+    h+='<div><table><tr><th>Field reached</th><th>Sessions</th><th>% of '+num(f.saw_email)+'</th></tr>';
+    fr.forEach(r=>{ h+='<tr><td>'+esc(FIELD_LBL[r.detail]||r.detail)+'</td><td>'+num(r.n)+'</td><td>'+pct(r.n,f.saw_email)+'</td></tr>'; });
+    if(!fr.length) h+='<tr><td colspan="3" class="muted">No data yet.</td></tr>';
+    h+='</table></div>';
+    h+='<div><table><tr><th>Submit blocked because</th><th>Times</th></tr>';
+    er.forEach(r=>{ h+='<tr><td>'+esc(ERR_LBL[r.detail]||r.detail)+'</td><td>'+num(r.n)+'</td></tr>'; });
+    if(!er.length) h+='<tr><td colspan="2" class="muted">No blocked submits yet.</td></tr>';
+    h+='</table></div></div>';
+    h+='<table style="margin-top:12px"><tr><th>Left without submitting</th><th>Sessions</th></tr>';
+    lv.forEach(r=>{ h+='<tr><td>'+esc(leaveLbl(r.detail))+'</td><td>'+num(r.n)+'</td></tr>'; });
+    if(!lv.length) h+='<tr><td colspan="2" class="muted">No leaves recorded yet.</td></tr>';
+    h+='</table><p class="muted">"Typed nothing" = did not want to give an email. "Typed: name + email" and then gone = something in the form blocked them (look at the blocked-submit reasons). Only sessions without a later submit are counted.</p></div>';
+  }
+  // timing
+  const t=x.timing||{};
+  if(t.first_tap_n || t.email_submit_n){
+    h+='<div class="card"><h2>Timing (medians)</h2><div class="tiles">'
+      + tile("Load → first tap", (t.first_tap_s!=null?t.first_tap_s+" s":"–"), num(t.first_tap_n)+" sessions")
+      + tile("Email step → submit", (t.email_submit_s!=null?t.email_submit_s+" s":"–"), num(t.email_submit_n)+" submits")
+      + tile("Email step → left", (t.email_leave_s!=null?t.email_leave_s+" s":"–"), num(t.email_leave_n)+" leaves")
+      + '</div><p class="muted">A long "load → first tap" on mobile points to slow loading in the in-app browser. A very short "email step → left" means people bounce on sight; a long one means they tried and got stuck.</p></div>';
+  }
+  return h;
+}
+function regionDaily(rows){
+  if(!rows.length) return '';
+  const days={}; rows.forEach(r=>{ const k=r.day; days[k]=days[k]||{}; days[k][r.region||""]=r; });
+  const keys=Object.keys(days).sort().reverse().slice(0,14);
+  const cell=(d,reg)=>{ const r=(days[d]||{})[reg]; return r ? num(r.starts)+' / '+num(r.views)+' <span class="muted">('+pct(r.starts,r.views)+')</span>' : '<span class="muted">–</span>'; };
+  let h='<table style="margin-top:12px"><tr><th>Day</th><th>EU/UK starts / views</th><th>Outside EU/UK</th><th>Before (no region)</th></tr>';
+  keys.forEach(d=>{ h+='<tr><td>'+esc(d)+'</td><td>'+cell(d,"eu")+'</td><td>'+cell(d,"row")+'</td><td>'+cell(d,"")+'</td></tr>'; });
   return h+'</table>';
 }
 
