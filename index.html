@@ -6,7 +6,10 @@
 <title>Harmonium Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cookie&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<!-- 28 Oct 2026: fonts no longer block the first paint. The page shows question 1 with the fallback
+     font right away and swaps in Fira Sans / Inter when they arrive. -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cookie&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cookie&family=Fira+Sans:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
 
 <!-- Cookie consent + Meta Pixel gate (loads the pixel only after consent) -->
 <!--
@@ -22,6 +25,15 @@
     so a choice made on quiz.harmoniumevolution.com is remembered on the main
     site too — the visitor is not asked twice.
   - Ready for both Systeme.io and the Netlify quiz (same snippet, both places).
+
+  QUIZ-ONLY CHANGES (28 Oct 2026)
+  - DEFER_BANNER: the banner is not shown on page load but right after the
+    first answer. Nothing non-essential runs before consent either way (the
+    pixel only loads after "accept"), so the legal position is unchanged.
+    On the Systeme site keep DEFER_BANNER = false.
+  - No dimmed backdrop on the quiz: it hid the answer buttons behind the banner.
+  - The banner and the choice are logged to the quiz dashboard (track("banner")
+    and track("consent")) so we can see how many EU/UK visitors it costs.
 
   WHICH TOGGLES ACTUALLY DO SOMETHING (be honest about this)
   - Targeting / Advertising  -> controls the Meta Pixel. THIS is your tracking.
@@ -113,13 +125,9 @@
   #he-cc .he-sw input:checked + label{ background:linear-gradient(135deg,#E8B970,#C9A84C); }
   #he-cc .he-sw input:checked + label::after{ transform:translateX(20px); background:#271354; }
   #he-cc .he-save{ margin-top:16px; }
-  /* Dimmed backdrop: pulls the eye to the banner without hard-blocking the page. */
-  #he-cc-backdrop{
-    position:fixed; inset:0; z-index:999990;
-    background:rgba(18,14,54,.5); opacity:0;
-    transition:opacity .35s ease; pointer-events:none;
-  }
-  #he-cc-backdrop.he-show{ opacity:1; }
+  /* 28 Oct 2026: no dimmed backdrop on the quiz. It covered the whole page and hid the answer
+     buttons behind the banner, so EU/UK visitors saw a dark page with a dialog instead of a quiz. */
+  #he-cc-backdrop{ display:none; }
   #he-cc-reopen{
     position:fixed; left:16px; bottom:16px; z-index:999998;
     background:#312e81; color:#E8B970; border:1px solid rgba(232,185,112,.45);
@@ -138,6 +146,9 @@
   var PRIVACY_POLICY_URL = "https://www.harmoniumevolution.com/privacy-policy"; // <-- confirm the real slug
   var SHOW_FOR_EVERYONE  = false;                 // true = show banner to all countries
   var CONSENT_MONTHS     = 6;
+  /* 28 Oct 2026, quiz only: ask for consent right after the first answer instead of on page load.
+     The quiz calls window.heShowBanner() when question 1 is answered. Keep false on the Systeme site. */
+  var DEFER_BANNER       = true;
   /* This Systeme account hosts several sites. The banner + pixel ONLY run on
      these hosts (apex, www and any subdomain like quiz.* all match). So even
      if this snippet ends up in a global/site-wide header, it stays off your
@@ -223,6 +234,7 @@
   /* --- Banner UI --- */
   function showBanner(){
     if (document.getElementById("he-cc")) return;
+    if (window.track) window.track("banner");       // 28 Oct 2026: counted in the quiz dashboard
     var b = document.createElement("div");
     b.id = "he-cc"; b.setAttribute("role","dialog"); b.setAttribute("aria-live","polite");
     b.innerHTML =
@@ -304,6 +316,8 @@
     apply(choice);
     closeBanner();
     showReopen();
+    /* 28 Oct 2026: what people chose, counted in the quiz dashboard (no personal data). */
+    if (window.track) window.track("consent", { detail: choice.marketing ? "marketing" : "essential" });
   }
   function closeBanner(){
     var b = document.getElementById("he-cc");
@@ -328,6 +342,7 @@
     }
     var c = getChoice();
     if (c){ apply(c); showReopen(); }         // returning EU/UK visitor
+    else if (DEFER_BANNER){ window.heShowBanner = showBanner; }   // first visit on the quiz -> ask after answer 1
     else  { showBanner(); }                   // first visit -> ask
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
@@ -463,6 +478,9 @@
   .wa-check.lit{background:#FFF8EA;border-color:var(--gold);}
   .wa-err{min-height:0;margin:0 auto;max-width:520px;text-align:left;}
   .wa-err:not(:empty){margin-bottom:8px;}
+  /* Variant b (28 Oct 2026): the WhatsApp block is folded behind one line until someone taps it. */
+  .wa-open{display:block;margin:0 auto 12px;max-width:520px;text-align:center;color:var(--action-sel);font-weight:500;line-height:1.4;}
+  .wa-open:hover{color:var(--action-deep);}
   /* one note above the button: WhatsApp line, email consent (outside EU/UK) and the privacy promise */
   .fine.note{margin:6px auto 18px;font-size:14.5px;color:var(--ink-soft);line-height:1.55;text-align:left;}
   .fine.note b{font-weight:600;color:var(--ink);}
@@ -557,7 +575,9 @@
 
 <div class="wrap">
   <div class="hero-row">
-    <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
+    <!-- 28 Oct 2026: everything that is not question 1 loads lazily. The side images are hidden on
+         phones but were still downloaded; loading="lazy" stops that. -->
+    <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" loading="lazy" decoding="async" width="220" height="220" />
     <div class="card">
       <div class="topband">
         <div class="hbar">
@@ -566,14 +586,14 @@
         </div>
         <div class="dots" id="dots" aria-hidden="true"></div>
       </div>
-      <img class="keys-strip" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba30c92ae2.65435221_d73fb52-212f-574-205-4efc65a17d6_5da203b4-68c7-418e-acb5-8bf6db78df48.jpg" alt="" aria-hidden="true" />
+      <img class="keys-strip" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba30c92ae2.65435221_d73fb52-212f-574-205-4efc65a17d6_5da203b4-68c7-418e-acb5-8bf6db78df48.jpg" alt="" aria-hidden="true" fetchpriority="low" decoding="async" />
       <div id="stage" aria-live="polite"></div>
     </div>
-    <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba307b7582.46663061_ca1e6021-220f-4fd3-b872-b78debf40aa1.jpg" alt="Playing the harmonium" />
+    <img class="side-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba307b7582.46663061_ca1e6021-220f-4fd3-b872-b78debf40aa1.jpg" alt="Playing the harmonium" loading="lazy" decoding="async" width="220" height="220" />
   </div>
 
   <section class="below">
-    <img class="below-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba323b4838.22031802_e8fe63-d4b-4a6a-e53e-e182e270184f_hand_close_correct-01.jpg" alt="Playing the harmonium" />
+    <img class="below-img" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba323b4838.22031802_e8fe63-d4b-4a6a-e53e-e182e270184f_hand_close_correct-01.jpg" alt="Playing the harmonium" loading="lazy" decoding="async" />
     <p class="kenny-quote">"You don't need special talent, you need the right path and the right guidance."</p>
     <ul class="gets">
       <li><span class="ic">✅</span>Your result: player type, what's holding you back + your best next steps.</li>
@@ -584,18 +604,18 @@
     <div class="proof">
       <h3 class="reviews-title">What our students are saying</h3>
       <div class="reviews">
-        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" />
-        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" />
-        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8f0acc9.85756707_des.png" alt="Student review" />
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba28be7d98.10384817_85b800f-fada-ef1c-32fe-35c3c7b6475_Jacopo_aangepast2.png" alt="Student review from Jacopo" loading="lazy" decoding="async" />
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab8ceb9bbadc1.64682750_nedreview.png" alt="Student review" loading="lazy" decoding="async" />
+        <img class="rev" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab62fe8f0acc9.85756707_des.png" alt="Student review" loading="lazy" decoding="async" />
       </div>
     </div>
   </section>
 </div>
 
-<img class="before-footer" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" />
+<img class="before-footer" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba32292303.56510151_e3e0c2-81d5-3ba0-114f-7e51c533ddbb_0ec3d3c8-0ea9-42a1-945c-6e2effabf1e3.jpg" alt="Kenny Clarys" loading="lazy" decoding="async" />
 
 <footer class="sitefooter">
-  <img class="flogo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" />
+  <img class="flogo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/69fef26ad64753.68039436_HELogoindigo.png" alt="The Harmonium Evolution" loading="lazy" decoding="async" />
   <nav class="flinks">
     <a href="https://www.harmoniumevolution.com/contact-us" target="_blank" rel="noopener">Contact</a>
     <a href="https://www.harmoniumevolution.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>
@@ -622,6 +642,8 @@ const CONFIG = {
   },
   META_PIXEL_ID: "1777296816750878"
 };
+/* Result names, shown as a teaser on the email step in variant b (28 Oct 2026). */
+const RESULT_NAMES = { A:"The Inspired Beginner", B:"The Rising Practitioner", D:"The Curious Explorer" };
 
 /* ============================================================ QUIZ */
 const QUESTIONS = [
@@ -665,6 +687,7 @@ function computeRoute(a){
 
 /* ============================================================ STATE */
 const answers={}; let idx=0; let started=false;
+let emailShownAt=0, onEmailStep=false;   // 28 Oct 2026: email step measurement
 const stage=document.getElementById("stage"), dotsEl=document.getElementById("dots");
 const TOTAL=QUESTIONS.length;
 const CC_OPTIONS=[
@@ -687,15 +710,24 @@ function fire(ev,ex){if(!window.fbq)return;const m=FB_STANDARD[ev]?"track":"trac
    Writes one small row per step to the Supabase table quiz_events: random session id,
    step number, device and UTMs. No email, no name, not linked to the lead. The key below
    is the PUBLIC anon key (Supabase -> Project Settings -> API Keys); the table only allows
-   inserts, so it is safe in the browser. Leave the placeholder and nothing is sent. */
+   inserts, so it is safe in the browser. Leave the placeholder and nothing is sent.
+
+   28 Oct 2026: every row also carries
+   - region   "eu" (sees the cookie banner and the email checkbox) or "row"
+   - variant  "a" or "b", a 50/50 split per session, for A/B tests on the page
+   and these events were added: banner, consent, field, err, email_leave, wa_open.
+   The columns region, variant, route, qualified, detail and ms must exist in quiz_events
+   before this file goes live, otherwise Supabase rejects the rows (silently). */
 const EV_URL="https://amrvuxvlsebrznwcqhij.supabase.co/rest/v1/quiz_events";
 const EV_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtcnZ1eHZsc2Vicnpud2NxaGlqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0MTAyMTMsImV4cCI6MjA5MTk4NjIxM30.yizmM8VnZ-wujPHNG6uIw5KrMMkKahS6lqv8rscsPHU";
 const EV_SID=(()=>{try{let s=sessionStorage.getItem("he_sid");if(!s){s=uuid();sessionStorage.setItem("he_sid",s);}return s;}catch(e){return uuid();}})();
 const EV_DEVICE=(window.matchMedia&&window.matchMedia("(max-width: 768px)").matches)?"mobile":"desktop";
+const EV_REGION=(typeof window.heConsentRequired==="function"&&window.heConsentRequired())?"eu":"row";
+const EV_VARIANT=(parseInt(EV_SID.replace(/-/g,"").slice(-1),16)%2)?"b":"a";
 function track(ev,extra){
   if(!EV_KEY||EV_KEY.indexOf("PASTE")===0)return;
   const u=getUTM();
-  const row=Object.assign({sid:EV_SID,ev:ev,device:EV_DEVICE,utm_source:u.utm_source,utm_campaign:u.utm_campaign,utm_content:u.utm_content},extra||{});
+  const row=Object.assign({sid:EV_SID,ev:ev,device:EV_DEVICE,region:EV_REGION,variant:EV_VARIANT,utm_source:u.utm_source,utm_campaign:u.utm_campaign,utm_content:u.utm_content},extra||{});
   try{
     fetch(EV_URL,{method:"POST",keepalive:true,
       headers:{"apikey":EV_KEY,"Authorization":"Bearer "+EV_KEY,"Content-Type":"application/json","Prefer":"return=minimal"},
@@ -715,6 +747,16 @@ function track(ev,extra){
   document.addEventListener("visibilitychange",onShow);
   document.addEventListener("prerenderingchange",onShow);
 })();
+/* 28 Oct 2026: someone leaves the email step without submitting. detail says which fields had
+   text (fn1_em0_wa0 = name typed, no email, no number), ms = time spent on the step. In the
+   dashboard an email_leave only counts when the same session has no submit. */
+function emailLeave(){
+  if(!onEmailStep) return; onEmailStep=false;
+  const has=id=>{const el=document.getElementById(id);return (el&&el.value.trim())?1:0;};
+  track("email_leave",{detail:"fn"+has("fn")+"_em"+has("em")+"_wa"+has("wa"),ms:Math.round(performance.now()-emailShownAt)});
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")emailLeave();});
+window.addEventListener("pagehide",emailLeave);
 function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
 
 /* ============================================================ WHATSAPP (22 Oct 2026)
@@ -855,8 +897,11 @@ function renderQuestion(){
         if(arr.includes(val)){answers[Q.id]=arr.filter(x=>x!==val);b.classList.remove("sel");}
         else{answers[Q.id]=[...arr,val];b.classList.add("sel");}}
       else{answers[Q.id]=val;box.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));b.classList.add("sel");}
-      if(!started){started=true;fire("QuizStart");} refresh();
-      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{track("q",{step:idx+1});idx++;renderQuestion();},800); }
+      // First answer: QuizStart to Meta (only if the pixel is loaded) and, for EU/UK first visits,
+      // the deferred cookie banner (28 Oct 2026). It appears over question 2, not over question 1.
+      if(!started){started=true;fire("QuizStart"); if(window.heShowBanner){window.heShowBanner();window.heShowBanner=null;}} refresh();
+      // The step-1 row carries ms = time from page load to the first tap.
+      if(!multi && !last){ advancing=true; box.querySelectorAll(".opt").forEach(o=>o.style.pointerEvents="none"); setTimeout(()=>{track("q",idx===0?{step:1,ms:Math.round(performance.now())}:{step:idx+1});idx++;renderQuestion();},800); }
     };
     box.appendChild(b);
   });
@@ -867,20 +912,26 @@ function renderQuestion(){
 
 /* ============================================================ EMAIL */
 function renderEmail(){
-  renderDots(); track("email");
+  const r0=computeRoute(answers);
+  renderDots(); track("email",{route:r0.route,qualified:r0.qualified});
+  emailShownAt=performance.now(); onEmailStep=true;
   { const _ti=document.querySelector(".topimg"); if(_ti){_ti.src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png"; _ti.classList.add("email-pic");} }
   const wrap=document.createElement("div"); wrap.className="step";
   // WhatsApp field (22 Oct 2026): shown for the routes in WA_ROUTES, always visible, never required.
-  const showWa=WA_ROUTES.includes(computeRoute(answers).route);
-  wrap.innerHTML=
-    `<div class="quiz">
-       <img class="kenny-photo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png" alt="Kenny Clarys" />
-       <h1 class="q result-big"><span class="chk">✓</span> Your result is ready.</h1>
-       <p class="sublabel one email-sub">Where should I send you the free masterclass <br class="desk-br">+ your personal quiz results?</p>
-       <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" placeholder="Type Your First Name" /></div>
-       <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="Type Your Best Email Address" /></div>
-       <div id="consent-email"></div>
-       ${showWa?`
+  const showWa=WA_ROUTES.includes(r0.route);
+  // Variant b (28 Oct 2026): the result name as a teaser above the form, and the WhatsApp block
+  // folded behind one line. Variant a is the page as it was. Both are measured per session.
+  const resultName=RESULT_NAMES[r0.route]||"";
+  const isB=EV_VARIANT==="b"&&!!resultName;
+  const head=isB
+    ? `<span class="q-count">Your result</span>
+       <h1 class="q result-big">${resultName}</h1>
+       <p class="sublabel one email-sub">Where should I send your full result, <br class="desk-br">the masterclass and the chord sheet?</p>`
+    : `<h1 class="q result-big"><span class="chk">✓</span> Your result is ready.</h1>
+       <p class="sublabel one email-sub">Where should I send you the free masterclass <br class="desk-br">+ your personal quiz results?</p>`;
+  const waBlock=showWa?`
+       ${isB?`<button type="button" class="btn-ghost wa-open" id="wa-open">📱 Want Kenny to message you personally on WhatsApp? Add your number</button>`:""}
+       <div id="wa-block"${isB?" hidden":""}>
        <div class="field wa-field"><label for="wa">WhatsApp number</label>
          <div class="cc-row">
            <select id="cc" class="cc" aria-label="Country code">${CC_OPTIONS}</select>
@@ -888,7 +939,16 @@ function renderEmail(){
          </div>
        </div>
        <label class="check wa-check" id="wa-check"><input type="checkbox" id="c-wa" /><span>Yes, I'd like to connect with Kenny directly on WhatsApp.</span></label>
-       <div class="err wa-err" id="wa-err"></div>`:""}
+       <div class="err wa-err" id="wa-err"></div>
+       </div>`:"";
+  wrap.innerHTML=
+    `<div class="quiz">
+       <img class="kenny-photo" src="https://d1yei2z3i6k35z.cloudfront.net/17100462/6ab64a88a651d0.85449438_Kennyemail.png" alt="Kenny Clarys" />
+       ${head}
+       <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name" placeholder="Type Your First Name" /></div>
+       <div class="field"><label for="em">Email</label><input id="em" type="email" autocomplete="email" placeholder="Type Your Best Email Address" /></div>
+       <div id="consent-email"></div>
+       ${waBlock}
        <p class="fine note" id="note"></p>
        <div class="err" id="err"></div>
        <div class="row center"><button class="btn-primary btn-cta" id="submit">Send my results and the masterclass →</button></div>
@@ -907,11 +967,16 @@ function renderEmail(){
   // privacy promise. Replaces the separate WhatsApp note and the line under the button.
   wrap.querySelector("#note").innerHTML=
     "🔒 "+
-    (showWa?"Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. ":"")+
+    (showWa&&!isB?"Leave your number and Kenny will message you personally on WhatsApp, the easiest way to stay in touch. ":"")+
     (euConsent?"":"By continuing you agree to receive your results, the masterclass and lessons by email. ")+
     "<b>No spam, ever.</b> Everything you share here is 100% secure, stored safely and handled with care and respect"+
     (euConsent?". Now and then we may send you useful harmonium playing tips, and you can unsubscribe anytime.":", and you can unsubscribe anytime.");
   swap(wrap);
+  // Which fields people actually reach, once per session (28 Oct 2026).
+  ["fn","em","wa"].forEach(id=>{const el=wrap.querySelector("#"+id); if(el) el.addEventListener("focus",()=>track("field",{detail:id}),{once:true});});
+  // Variant b: unfold the WhatsApp block on tap.
+  const waOpen=wrap.querySelector("#wa-open");
+  if(waOpen){ waOpen.onclick=()=>{ waOpen.remove(); const blk=wrap.querySelector("#wa-block"); if(blk) blk.hidden=false; track("wa_open"); const w=wrap.querySelector("#wa"); if(w) w.focus(); }; }
   // WhatsApp: pre-select the country, light up the consent box as soon as someone types.
   const waIn=wrap.querySelector("#wa");
   if(waIn){
@@ -922,7 +987,7 @@ function renderEmail(){
     waIn.addEventListener("blur",()=>{if(!waIn.value.trim())chk.classList.remove("lit");});
     wrap.querySelector("#c-wa").addEventListener("change",()=>{wrap.querySelector("#wa-err").textContent="";});
   }
-  wrap.querySelector("#back").onclick=()=>{idx=TOTAL-1;renderQuestion();};
+  wrap.querySelector("#back").onclick=()=>{onEmailStep=false;idx=TOTAL-1;renderQuestion();};
   wrap.querySelector("#submit").onclick=submit;
 }
 
@@ -939,10 +1004,12 @@ function submit(){
   const consentRegion=cBox?"eu":"row";
   const cWaBox=document.getElementById("c-wa"); const cWa=!!(cWaBox&&cWaBox.checked);
   const err=document.getElementById("err");
-  if(!fn){err.textContent="Please add your first name.";return;}
+  // Every blocked submit is counted (28 Oct 2026): err rows with detail fn, em, em_suggest, wa_number, wa_tick, em_systeme.
+  if(!fn){err.textContent="Please add your first name.";track("err",{detail:"fn"});return;}
   const chk=checkEmail(emRaw);
   if(!chk.ok){
     err.textContent="";
+    track("err",{detail:chk.suggest?"em_suggest":"em"});
     if(chk.suggest){
       err.append("That email doesn't look right. Did you mean ");
       const b=document.createElement("b"); b.textContent=chk.suggest; err.append(b);
@@ -962,10 +1029,12 @@ function submit(){
   if(waErr){
     waErr.textContent="";
     if(!waRes.empty&&!waRes.ok){
+      track("err",{detail:"wa_number"});
       waErr.textContent=(ccSel&&!ccSel.value)?"Please type your full number starting with +, including the country code.":"Please check your number, it looks incomplete.";
       waIn.focus(); return;
     }
     if(!waRes.empty&&!cWa){
+      track("err",{detail:"wa_tick"});
       const box=document.getElementById("wa-check");
       waErr.textContent="One small tick above so Kenny may message you 🙏 ";
       const a=document.createElement("a"); a.href="#"; a.textContent="Or continue without WhatsApp";
@@ -975,7 +1044,7 @@ function submit(){
       return;
     }
   }
-  err.textContent=""; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
+  err.textContent=""; onEmailStep=false; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
   const r=computeRoute(answers); const utm=getUTM();
   const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,consent_region:consentRegion,whatsapp_consent:cWa&&!!wa,
     answers:answers,route:r.route,qualified:r.qualified,advanced:r.advanced,
@@ -983,13 +1052,14 @@ function submit(){
     fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href,
     marketing_consent:(window.heConsent?!!window.heConsent.marketing:true)};
   fire("Lead"); if(r.qualified)fire("QualifiedLead");
-  track("submit",{route:r.route,qualified:r.qualified});
+  track("submit",{route:r.route,qualified:r.qualified,ms:Math.round(performance.now()-emailShownAt)});
   postLead(payload).then(res=>{
     // The Function answers {ok:false, reason:"invalid_email"} when Systeme refused the address.
     // Show it once so the person can correct a typo. If they insist on the same address a
     // second time, let them through to the result page (the lead is in Supabase either way).
     if(res&&res.ok===false&&res.reason==="invalid_email"&&rejectedEmail!==em){
-      rejectedEmail=em;
+      rejectedEmail=em; onEmailStep=true;
+      track("err",{detail:"em_systeme"});
       btn.disabled=false; btn.textContent="Send my results and the masterclass →";
       err.textContent="That email address was not accepted. Please check it and try again.";
       return;
