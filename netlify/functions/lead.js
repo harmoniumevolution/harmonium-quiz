@@ -7,6 +7,12 @@
 // to the Conversions API with the same event_id as the browser event.
 // Tags to create in Systeme: route-h, route-h-results-only, hobby.
 // SQL once: alter table quiz_leads add column if not exists hobby boolean;
+// 30 Oct 2026 (evening): question 10 states the size of the investment (no price) and routes on the
+// answer: "program" -> H (the page, beginner or not, tag hobby + HobbyLead), "mentorship" -> B (call,
+// QualifiedLead), "explore" and "budget" -> D. A "budget" answer also sends budget:true; this file then
+// adds the tag "d-budget" (with email consent) so the D mails can show the cheap path. Route A is gone.
+// Tag to create in Systeme: d-budget.
+// SQL once: alter table quiz_leads add column if not exists budget boolean;
 // Secrets live in Netlify environment variables, never in the repo:
 //   SYSTEME_API_KEY        (Systeme public API key)
 //   SUPABASE_SERVICE_KEY   (Supabase service_role key)
@@ -61,10 +67,17 @@ const LABELS = {
   },
   harmonium: { yes: "Yes", onway: "On its way", notyet: "Not yet" },
   invest: {
+    // 30 Oct 2026 (evening) question: the investment size is in the question, these are the answers
+    explore: "Still exploring, free videos for now",
+    program: "Ready for an investment the size of a good harmonium or a few months of lessons, wants to learn through the program at own pace",
+    mentorship: "Wants more than the program (play for others, maybe teach), open to personal mentorship",
+    budget: "Would love to, but an investment like that isn't realistic right now",
+    // 30 Oct 2026 (morning) question
     unsure: "Getting started, not sure they can learn it or stay motivated",
     properly: "Beginner, wants to learn it the right way with quality guidance, ready to invest",
     hobby: "Plays already, hobby, no big plans, wants to get better at own pace",
     serious: "Plays already, wants to play well also with others, ready to invest",
+    // older questions
     ambitious: "Ambitious (28-30 Oct question)",
     ready: "Ready to invest (old question)",
     free: "Free tips for now (old question)",
@@ -184,7 +197,7 @@ async function sendLeadNotification(p, geo) {
     ["Email", p.email || ""],
     ["WhatsApp", p.whatsapp ? p.whatsapp + (dial ? " (" + dial + ")" : "") : "not left"],
     ["Country", (where || "unknown") + (geo.timezone ? " · " + geo.timezone : "")],
-    ["Route", routeTxt + (p.qualified ? ", qualified (call)" : p.hobby ? ", hobby (offer the year, not lifetime)" : ", starting, not sure (proof route, no call)")],
+    ["Route", routeTxt + (p.qualified ? ", qualified (mentorship answer, call)" : p.hobby ? ", program answer (the page; on a call: offer the year, not lifetime)" : p.budget ? ", budget answer (proof route, cheap path in the mails, no call)" : ", exploring (proof route, no call)")],
     ["Plays", label("place", a.place)],
     ["Level", label("level", a.level)],
     ["Situation", label("blocker", a.blocker)],
@@ -323,10 +336,12 @@ exports.handler = async (event, context) => {
   // tag "d-experienced" and, optionally, a heads-up to Kenny via Zapier.
   // Only with email consent, because the follow-up sends email. No Meta event:
   // the QualifiedLead signal stays untouched.
-  // 30 Oct 2026: route D is now "getting started, not sure"; an experienced player there is a
-  // contradiction worth a look, same as before.
+  // 30 Oct 2026: route D is now "still exploring" or "not realistic right now"; an experienced player
+  // who is still exploring is a contradiction worth a look, same as before. An experienced player who
+  // said the investment isn't realistic is not: the reason is known, so d-budget handles that one.
   const expD =
     String(p.route || "").toUpperCase() === "D" &&
+    p.budget !== true &&
     ["1to5", "over5"].includes((p.answers || {}).level) &&
     p.email_consent === true;
 
@@ -440,6 +455,9 @@ exports.handler = async (event, context) => {
       if (p.hobby) tags.push("hobby");                // route H (28 Oct 2026)
       if (emailOk) tags.push("email-consent");
       if (expD) tags.push("d-experienced");
+      // 30 Oct 2026 (evening): "the investment isn't realistic right now". Only with consent, because
+      // the tag changes which mails go out (Getting Started on day 5, the half year on day 14).
+      if (route === "d" && p.budget === true && emailOk) tags.push("d-budget");
       const tagMap = await getTagMap();
       const tagged = [];
       for (const name of tags) {
@@ -579,6 +597,7 @@ exports.handler = async (event, context) => {
       consent: marketingOk,
       d_experienced: expD,
       hobby: !!p.hobby,
+      budget: p.budget === true,
       hook: hookOk,
       notify: notifyOk,
     }),
