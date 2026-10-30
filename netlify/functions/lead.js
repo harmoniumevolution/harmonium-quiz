@@ -61,10 +61,10 @@ const LABELS = {
   },
   harmonium: { yes: "Yes", onway: "On its way", notyet: "Not yet" },
   invest: {
-    unsure: "Getting started, not sure they can learn it",
-    properly: "Getting started, wants to learn it properly from day one",
+    unsure: "Getting started, not sure they can learn it or stay motivated",
+    properly: "Beginner, wants to learn it the right way with quality guidance, ready to invest",
     hobby: "Plays already, hobby, no big plans, wants to get better at own pace",
-    serious: "Plays already, serious, also for others, ready to invest",
+    serious: "Plays already, wants to play well also with others, ready to invest",
     ambitious: "Ambitious (28-30 Oct question)",
     ready: "Ready to invest (old question)",
     free: "Free tips for now (old question)",
