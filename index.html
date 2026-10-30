@@ -455,8 +455,6 @@
   .sublabel.one{color:var(--ink-soft);}
   .sublabel.all{color:var(--action-sel);font-weight:600;}
   .hint{font-size:14px;color:var(--ink-soft);margin:-8px 0 18px;font-style:italic;}
-  .q-lead{font-family:'Inter',sans-serif;font-size:16px;line-height:1.5;color:var(--ink);margin:0 auto 16px;max-width:560px;}
-  .q-note{font-family:'Inter',sans-serif;font-size:14px;line-height:1.45;color:var(--ink-soft);font-style:italic;margin:-6px auto 16px;max-width:560px;}
 
   /* answer cards: very light teal tint, teal border, radio/checkbox mark. Selected = filled teal. */
   .options{display:flex;flex-direction:column;gap:12px;text-align:left;max-width:560px;margin:0 auto;}
@@ -671,7 +669,7 @@ const CONFIG = {
     B:"/result.html",
     C:"/result.html",
     D:"/result.html",
-    H:"/annual.html"      // hobby: the hobby sales page; while HOBBY_PAGE_LIVE is false the redirect uses result.html with the D content instead
+    H:"/annual.html"      // hobby: the hobby offer page; while HOBBY_TO_CALL is true the redirect uses result.html instead
   },
   META_PIXEL_ID: "1777296816750878"
 };
@@ -702,29 +700,22 @@ const QUESTIONS = [
     opts:[["sargam","Indian Sargam: sa, re, ga, ma, pa, dha, ni, sa"],["western","Western: C, D, E, F, G, A, B, C"],["both","Both Indian & Western"],["none","Didn't learn yet"]]},
   { id:"harmonium", q:"Do you have a harmonium to practice on?",
     opts:[["yes","Yes"],["onway","It's on its way"],["notyet","Not yet"]]},
-    /* 30 Oct 2026 (evening, final): the size of the investment is in the question, in comparisons,
-       without a price (a good harmonium, several months of lessons, not cheap or quick). "Quality
-       guidance" and "ready to invest" alone were attitudes everyone agreed with; each answer now says
-       whether paying is on the table, against that known size. Kenny's wording. */
-    { id:"invest", q:"Last one, and an honest one.",
-    lead:"Harmonium Evolution is a complete, in-depth program. Think of it as the kind of investment you'd make in a good harmonium, or in several months of lessons with a teacher. It's not for you if you're looking for something cheap or quick. Knowing that, which is true for you right now?",
-    note:"(To start the lessons you don't need a harmonium for the first months. A simple, cheap keyboard will do. Learn first, buy later is the best order.)",
+    { id:"invest", q:"Last one, and an honest one. Which of these sounds most like you?",
     hint:"No wrong answer. You get the masterclass and chord sheet either way.",
-    opts:[["unsure","I'm getting started, and I'm not sure yet if I can learn the harmonium, or if I'll stay motivated enough to keep practicing. So I don't really want to pay for lessons right now."],
-          ["properly","I'm a beginner, and I want to learn the harmonium the right way from the start, with quality lessons. I'm ready to make that kind of investment in my playing."],
-          ["hobby","I already play, but it's a hobby. No big plans right now, I'd just love to get better at my own pace. I'm not sure I want to pay for that."],
-          ["serious","I already play, and I have a strong desire to get a lot better and play really well. It would be great to play with others too: kirtan, yoga, sound healing, with other musicians. I'm ready to make the necessary investment in the right guidance, a program or possibly private mentorship."]]}
+    opts:[["unsure","I'm getting started, and I'm not sure yet if I can learn the harmonium, or if I'll stay motivated enough to keep practicing."],
+          ["properly","I'm a beginner, and I want to learn the harmonium the right way from the start, with quality guidance. I'm ready to invest in the right lessons."],
+          ["hobby","I already play, but it's a hobby. No big plans right now, I'd just love to get better at my own pace."],
+          ["serious","I already play, and I really want to play well, also with others: kirtan, yoga, sound healing, with other musicians. I'm ready to invest in the right guidance."]]}
 ];
 
-/* ============================================================ ROUTING (30 Oct 2026, evening, final)
-   Question 10 states the size of the investment (no price) and asks what is true now.
-     unsure   -> D  getting started, doesn't want to pay for lessons: proof route (masterclass, trial lessons, mails), no call
-     properly -> A  beginner, ready for an investment the size of a harmonium: call, qualified
-     hobby    -> H  plays, hobby, not sure about paying: the hobby sales page once it is live; until then the proof
-                    page (D content, no call), tag "hobby" and HobbyLead
-     serious  -> B  plays, strong desire, ready for a program or mentorship: call, qualified; advanced tag by level
+/* ============================================================ ROUTING (30 Oct 2026: intention, not level)
+   Question 10 asks what someone wants from the harmonium right now.
+     unsure    -> D  starting, not sure they can learn it: proof route (masterclass, trial lessons, mails), no call
+     properly  -> A  starting, wants to learn it the right way: call, qualified
+     hobby     -> H  plays, it's a hobby: for now the call page with the hobby tag, later the hobby sales page
+     serious   -> B  plays, serious: call, qualified; advanced tag by level and goals
    Harmonium ownership does not count. No answer = D. */
-const HOBBY_PAGE_LIVE = false;   // 30 Oct 2026: false = route H lands on the proof page (result.html, D content); true = /annual.html (the hobby sales page)
+const HOBBY_TO_CALL = true;   // 30 Oct 2026: true = hobby leads still see the call page (result.html) until the hobby page is live
 function computeRoute(a){
   const invest=a.invest, level=a.level;
   if(invest==="hobby"){return {route:"H",qualified:false,advanced:false,hobby:true};}
@@ -813,7 +804,7 @@ function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
    The number field is always visible and never required. The country is pre-selected from the
    visitor's time zone (then browser language). The number is sent as E.164 (+31612345678) so the
    wa.me link in the lead notification always works. */
-const WA_ROUTES=["A","B"];   // the WhatsApp field on the call routes only (30 Oct 2026: route H has no call, so no number field)
+const WA_ROUTES=HOBBY_TO_CALL?["A","B","H"]:["A","B"];   // the WhatsApp field on the call routes (30 Oct 2026)
 function flagIso(f){const a=Array.from(f);if(a.length!==2)return "";return a.map(c=>String.fromCodePoint(c.codePointAt(0)-0x1F1E6+65)).join("");}
 const TZ_ISO={"Europe/London":"GB","Europe/Dublin":"IE","Europe/Amsterdam":"NL","Europe/Brussels":"BE","Europe/Berlin":"DE","Europe/Paris":"FR","Europe/Zurich":"CH","Europe/Vienna":"AT","Europe/Madrid":"ES","Europe/Rome":"IT","Europe/Lisbon":"PT","Europe/Stockholm":"SE","Europe/Oslo":"NO","Europe/Copenhagen":"DK","Europe/Helsinki":"FI","Europe/Warsaw":"PL","Europe/Prague":"CZ","Europe/Athens":"GR",
   "Asia/Kolkata":"IN","Asia/Calcutta":"IN","Asia/Dubai":"AE","Asia/Singapore":"SG","Asia/Kuala_Lumpur":"MY","Asia/Karachi":"PK","Asia/Dhaka":"BD","Asia/Kathmandu":"NP","Asia/Colombo":"LK","Pacific/Auckland":"NZ","Pacific/Fiji":"FJ","Africa/Johannesburg":"ZA","Indian/Mauritius":"MU","Africa/Nairobi":"KE",
@@ -927,8 +918,6 @@ function renderQuestion(){
      <div class="quiz">
        <span class="q-count">Question ${idx+1}${idx>=2?` of ${TOTAL}`:""}</span>
        <h1 class="q">${Q.q}</h1>
-       ${Q.lead?`<p class="q-lead">${Q.lead}</p>`:""}
-       ${Q.note?`<p class="q-note">${Q.note}</p>`:""}
        <p class="sublabel ${multi?"all":"one"}">${multi?"Tap all that apply 👇, then press Next":"Tap the one that fits you best 👇"}</p>
        ${Q.hint?`<p class="hint">${Q.hint}</p>`:""}
        <div class="options"></div>
@@ -1097,7 +1086,7 @@ function submit(){
     utm_source:utm.utm_source,utm_campaign:utm.utm_campaign,utm_content:utm.utm_content,utm_medium:utm.utm_medium,
     fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href,
     marketing_consent:(window.heConsent?!!window.heConsent.marketing:true)};
-  // 30 Oct 2026: QualifiedLead for the call routes A and B, HobbyLead for route H (the hobby page).
+  // 28 Oct 2026: QualifiedLead only for ambitious leads (the call), HobbyLead for the annual route.
   fire("Lead"); if(r.qualified)fire("QualifiedLead"); else if(r.hobby)fire("HobbyLead");
   track("submit",{route:r.route,qualified:r.qualified,ms:Math.round(performance.now()-emailShownAt)});
   postLead(payload).then(res=>{
@@ -1123,11 +1112,8 @@ function postLead(p){
     .catch(e=>{console.error("Lead post failed (continuing):",e);return {};});
 }
 function redirect(r,fn){
-  // Route H before the hobby page is live: the proof page (result.html with the D content, no call). The lead
-  // itself keeps route H in Supabase and Systeme; only what the page shows is D.
-  const interimH=(r.route==="H"&&!HOBBY_PAGE_LIVE);
-  const base=interimH?CONFIG.RESULT_URLS.D:(CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D);
-  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:interimH?"D":r.route,harmonium:first(answers.harmonium),intent:first(answers.invest),l:eventId,t:String(Date.now())});
+  const base=(r.route==="H"&&HOBBY_TO_CALL)?CONFIG.RESULT_URLS.B:(CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D);
+  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route,harmonium:first(answers.harmonium),intent:first(answers.invest),l:eventId,t:String(Date.now())});
   location.href=base+(base.includes("?")?"&":"?")+q.toString();
 }
 function swap(node){stage.innerHTML="";stage.appendChild(node);window.scrollTo({top:0,behavior:"instant"});}
