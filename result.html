@@ -72,6 +72,17 @@
   #recTop{margin-top:4px;}
   #recTop .block{margin-top:18px;}
   .teach{text-align:left;max-width:56ch;margin:26px auto 0;font-size:clamp(15.5px,1.95vw,17.5px);color:var(--ink);line-height:1.6;}
+  /* route D trial lessons (30 Oct 2026) */
+  .trials{max-width:560px;margin:18px auto 0;text-align:left;}
+  .trial{margin:0 0 22px;}
+  .trial-h{font-family:'Fira Sans',sans-serif;font-weight:700;font-size:17px;color:var(--ink);margin:0 0 8px;}
+  .trial-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:2px solid var(--gold-deep);}
+  .trial-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .trial-stop{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;background:rgba(11,0,84,.9);color:#fff;}
+  .trial-stop.on{display:flex;}
+  .trial-stop p{color:#f3e9e1;font-size:15px;max-width:40ch;margin:0 auto;}
+  .trial-stop-h{font-family:'Fira Sans',sans-serif;font-weight:700;color:var(--gold);font-size:19px;margin:0 0 8px !important;}
+  .trial-note{font-size:14px;color:var(--ink-soft);margin:8px 0 0;}
   .step-arrow{text-align:center;margin:14px auto 0;}
   .step-arrow img{height:104px;width:auto;}
   .post-cta{display:none;margin:28px auto 0;text-align:center;}
@@ -525,6 +536,12 @@ const CONFIG = {
   CALENDLY_URL: "https://calendly.com/harmoniumevolution/book-your-free-call-now-clone?hide_gdpr_banner=1",
   GETTING_STARTED_URL: "https://harmoniumevolution.com/getting-started",
   DECO_IMG: "https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba343a89e9.50572169_fed7f3-abe6-483b-c443-2675705ee5_be42f62a-8a5f-4a19-afa6-811f7277a9fa.jpg",
+  /* 30 Oct 2026, route D (getting started, not sure): two real lessons, each stops after 2 minutes */
+  TRIAL_LESSONS: [
+    { id:"508981309", title:"Your first chords", bundle:"Chord Freedom", note:"Simple on purpose: this is where everyone starts." },
+    { id:"699502921", title:"Raghupati Raghav, melody and chords together", bundle:"Melody Meets Chords", note:"This is where the program takes you." }
+  ],
+  TRIAL_STOP_SECONDS: 120,
   WHATSAPP_NUMBER: "31623501463",
   WHATSAPP_TEXT: "Hi Kenny, can I get more information about Harmonium Evolution?"
 };
@@ -536,6 +553,7 @@ const fn = (P.get("fn") || "").trim();
 const em = (P.get("em") || "").trim(); /* optional: email from the quiz, prefilled in the Calendly popup */
 const hi = fn ? (", " + fn) : "";
 const harmonium = (P.get("harmonium")||"").toLowerCase();
+const intent = (P.get("intent")||"").toLowerCase();   /* 30 Oct 2026: the answer to question 10 (unsure, properly, hobby, serious) */
 
 /* ===== stars decoration ===== */
 (function(){const el=document.getElementById("decor");
@@ -579,18 +597,19 @@ const CONTENT = {
       `<ul><li>play lots of beautiful &amp; expressive chants</li><li>refine your playing and musicality</li><li>confidently play every song you love</li><li>understand musical patterns</li><li>smooth &amp; subtler chord transitions</li><li>find real fulfillment and expression by playing Harmonium</li></ul></div>`
   },
   D:{
+    /* 30 Oct 2026: proof route. No price and no buy button on this page: the person just told us they are
+       not sure they can learn it, so the page shows them they can (masterclass + two real lessons) and the
+       next step comes by email on day 5 (Getting Started, $47). Zero of 98 D-leads bought from the old page. */
     name:"The Curious Explorer",
-    tag:`Here's a beautiful place to begin${hi}.`,
+    tag:`You're wondering whether you can learn the harmonium at all${hi}. That question has a simple answer, and you can test it yourself in the next ten minutes.`,
     call:false,
-    recTop:`<div class="block"><p class="list-intro"><b>Perhaps you have some doubts:</b></p><ul class="familiar"><li>YouTube is confusing</li><li>Am I able to learn Harmonium? Will it work for me?</li><li>Is Harmonium something for me? Will I like to play it?</li></ul></div>`+
-      `<p class="lead soft"><b>You don't need special music talent.</b></p>`+ MIDHR + THREE,
-    steps:[["Step 1:","Watch the Harmonium Freedom masterclass 👇"],["Step 2:","Begin with clarity and structure: Getting Started with Harmonium, the perfect introduction course for only $47"]],
-    bodyD:`<p class="lead"><b>Let's build confidence together.</b></p>`+
-      `<p class="lead soft">Get rid of all confusion so you can start correctly.</p>`+
-      `<h2 class="nextstep-title" style="margin-top:40px">Getting Started With Harmonium $47</h2>`+
-      `<p class="nextstep-sub">A 2 hour, step-by-step intro course that gets you playing the right way, from day one.</p>`+
-      `<div class="block good" style="max-width:46ch;margin:18px auto 0"><ul><li>Play your first chants within a few days</li><li>Understand the basics instead of guessing</li><li>No harmonium yet? You can start on a simple keyboard</li><li>One-time payment, lifetime access</li></ul></div>`+
-      `<div class="post-cta d-cta" id="dCta"><a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a></div>`
+    recTop:`<div class="block"><p class="list-intro"><b>Perhaps you have some doubts:</b></p><ul class="familiar"><li>Am I musical enough? I never learned an instrument.</li><li>YouTube is confusing, where do I even start?</li><li>Will I like it, and will I keep it up?</li></ul></div>`+
+      `<p class="lead soft"><b>You don't need special music talent.</b> Almost none of my 850 students felt "musical" at the start. What they needed was the right first step, and someone who shows it slowly.</p>`+ MIDHR + THREE,
+    steps:[["Step 1:","Watch the Harmonium Freedom masterclass 👇"],["Step 2:","Try two real lessons from the program, two minutes each, and feel for yourself"],["Step 3:","Check your inbox: over the next days I'll send you your first small wins, and your next step"]],
+    bodyD:`<p class="lead"><b>Let's find out together.</b></p>`+
+      `<p class="lead soft">Below are two real lessons from inside the program. The first is where everyone starts. The second is where it goes. Two minutes each, no sign-up, nothing to buy.</p>`+
+      `<div id="trialLessons" class="trials"></div>`+
+      `<p class="lead soft" style="margin-top:22px"><b>What happens next?</b> Nothing you need to do. Your masterclass and chord chart are here, and in the coming days I'll send you a few short emails with your first small wins. If you feel "I can do this", I'll show you the simplest way to start, for less than a music lesson. If not, you keep the chord chart and the lessons, with my blessing.</p>`
   }
 };
 
@@ -663,18 +682,30 @@ if(c.call){
     window.Calendly.initPopupWidget({ url: calendlyPopupUrl() });
   });
 }else{
+  /* route D (30 Oct 2026): proof route, nothing to buy on this page */
   recTop.innerHTML = c.recTop;
   steps.innerHTML = renderSteps(c.steps); steps.hidden = false;
   body.innerHTML = c.bodyD;
-  const mcCtaD=document.getElementById("heMcCta");
-  mcCtaD.innerHTML = `<a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a>`;
-  mcCtaD.classList.add("shown");
-  stickyCta.innerHTML = `<a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a>`;
+  document.getElementById("heMcCta").innerHTML = "";
+  stickyCta.innerHTML = `<a href="#trialLessons" class="btn">TRY A REAL LESSON, 2 MINUTES →</a>`;
   finalcta.innerHTML =
-    `<p class="lead-in">Ready To Start Playing?</p>` +
-    `<a href="${CONFIG.GETTING_STARTED_URL}" class="btn">GET STARTED WITH HARMONIUM, ONLY $47 →</a>` +
+    `<p class="lead-in">Your next step arrives by email in the coming days.</p>` +
+    `<p class="lead soft" style="max-width:46ch;margin:0 auto">Until then: play the two lessons again, open the chord chart, and put the harmonium somewhere you see it every day.</p>` +
     `<img class="deco" src="${CONFIG.DECO_IMG}" alt="" aria-hidden="true">`;
-  setTimeout(()=>{ const d=document.getElementById("dCta"); if(d) d.classList.add("shown"); }, 45000);
+  /* two real lessons, each stopped after TRIAL_STOP_SECONDS */
+  const box=document.getElementById("trialLessons");
+  CONFIG.TRIAL_LESSONS.forEach((L,i)=>{
+    const d=document.createElement("div"); d.className="trial";
+    d.innerHTML=`<p class="trial-h">Lesson ${i+1}: ${L.title}</p>`+
+      `<div class="trial-frame"><iframe src="https://player.vimeo.com/video/${L.id}?dnt=1&title=0&byline=0&portrait=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${L.title}"></iframe>`+
+      `<div class="trial-stop"><div><p class="trial-stop-h">That's the first two minutes.</p><p>The full lesson, and everything around it, is inside <b>${L.bundle}</b>. Your next step comes by email.</p></div></div></div>`+
+      `<p class="trial-note">${L.note}</p>`;
+    box.appendChild(d);
+    try{
+      const pl=new Vimeo.Player(d.querySelector("iframe")); let stopped=false;
+      pl.on("timeupdate",t=>{ if(!stopped&&t.seconds>=CONFIG.TRIAL_STOP_SECONDS){ stopped=true; pl.pause(); d.querySelector(".trial-stop").classList.add("on"); } });
+    }catch(e){}
+  });
 }
 if(harmonium==="notyet"){ document.getElementById("harmNote").hidden = false; }
 finalcta.hidden = false;
@@ -698,8 +729,8 @@ finalcta.hidden = false;
     cta.href = "#book"; cta.innerHTML = "Click to book your free call &rarr;"; cta.classList.add("js-book");
     endH.textContent = "Ready for your next step?";
   }else{
-    cta.href = CONFIG.GETTING_STARTED_URL; cta.innerHTML = "Get started with Harmonium, $47 &rarr;";
-    endH.textContent = "Ready to start playing?";
+    cta.href = "#trialLessons"; cta.innerHTML = "Now try a real lesson, 2 minutes &rarr;";
+    endH.textContent = "Did that make sense?";
   }
 
   var player=null;
