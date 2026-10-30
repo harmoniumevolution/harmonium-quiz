@@ -668,7 +668,8 @@ const CONFIG = {
     A:"/result.html",
     B:"/result.html",
     C:"/result.html",
-    D:"/result.html"
+    D:"/result.html",
+    H:"/annual.html"      // hobby: the hobby offer page; while HOBBY_TO_CALL is true the redirect uses result.html instead
   },
   META_PIXEL_ID: "1777296816750878"
 };
@@ -676,7 +677,7 @@ const CONFIG = {
    form. Set TEASER_TEST to false and everyone sees the page as it was. The WhatsApp block is the
    same in both variants (always open, as before). */
 const TEASER_TEST = true;
-const RESULT_NAMES = { A:"The Inspired Beginner", B:"The Rising Practitioner", D:"The Curious Explorer" };
+const RESULT_NAMES = { A:"The Committed Beginner", B:"The Rising Practitioner", D:"The Curious Explorer", H:"The Joyful Player" };
 
 /* ============================================================ QUIZ */
 const QUESTIONS = [
@@ -699,23 +700,30 @@ const QUESTIONS = [
     opts:[["sargam","Indian Sargam: sa, re, ga, ma, pa, dha, ni, sa"],["western","Western: C, D, E, F, G, A, B, C"],["both","Both Indian & Western"],["none","Didn't learn yet"]]},
   { id:"harmonium", q:"Do you have a harmonium to practice on?",
     opts:[["yes","Yes"],["onway","It's on its way"],["notyet","Not yet"]]},
-    { id:"invest", q:"Last one. If Harmonium Evolution turns out to be the right fit for your playing, where do you stand right now?",
-    hint:"Honest answer helps me send you the right next step. You'll get the masterclass and chord sheet either way.",
-    opts:[["ready","I'm ready to invest in the right guidance for my playing"],
-          ["free","I'm not planning to invest in a course right now"]]}
+    { id:"invest", q:"Last one, and an honest one. Which of these sounds most like you?",
+    hint:"No wrong answer. You get the masterclass and chord sheet either way.",
+    opts:[["unsure","I'm just getting started, and honestly I'm not sure yet if I can learn the harmonium."],
+          ["properly","I'm just getting started, and I want to learn it properly, the right way, from day one."],
+          ["hobby","I already play. It's my hobby, no big plans right now, but I'd love to get better at my own pace."],
+          ["serious","I already play, and I'm serious about it. I want to play well, also for others (kirtan, yoga, sound healing, with musicians), and I'm ready to invest in good guidance."]]}
 ];
 
-/* ============================================================ ROUTING (harmonium not used to qualify) */
+/* ============================================================ ROUTING (30 Oct 2026: intention, not level)
+   Question 10 asks what someone wants from the harmonium right now.
+     unsure    -> D  starting, not sure they can learn it: proof route (masterclass, trial lessons, mails), no call
+     properly  -> A  starting, wants to learn it the right way: call, qualified
+     hobby     -> H  plays, it's a hobby: for now the call page with the hobby tag, later the hobby sales page
+     serious   -> B  plays, serious: call, qualified; advanced tag by level and goals
+   Harmonium ownership does not count. No answer = D. */
+const HOBBY_TO_CALL = true;   // 30 Oct 2026: true = hobby leads still see the call page (result.html) until the hobby page is live
 function computeRoute(a){
   const invest=a.invest, level=a.level;
-  // Only "free tips for now" (or no answer) goes to D, not qualified.
-  if(invest!=="ready"){return {route:"D",qualified:false,advanced:false};}
-  // Ready to invest = qualified. Harmonium does not count. Route is A or B by level.
+  if(invest==="hobby"){return {route:"H",qualified:false,advanced:false,hobby:true};}
+  if(invest!=="properly" && invest!=="serious"){return {route:"D",qualified:false,advanced:false,hobby:false};}
   const sm=Array.isArray(a.sixmonths)?a.sixmonths:(a.sixmonths?[a.sixmonths]:[]);
   const advanced = level==="over5" || a.place==="lead" || a.place==="teach" || sm.includes("teaching") || sm.includes("refinement");
-  const beginner = (level==="none"||level==="under1") && a.musiccheck!=="correct";
-  const route = beginner ? "A" : "B";
-  return {route, qualified:true, advanced:(route==="B" && advanced)};
+  const route = invest==="properly" ? "A" : "B";
+  return {route, qualified:true, advanced:(route==="B" && advanced), hobby:false};
 }
 
 /* ============================================================ STATE */
@@ -796,7 +804,7 @@ function first(v){return Array.isArray(v)?(v[0]||""):(v||"");}
    The number field is always visible and never required. The country is pre-selected from the
    visitor's time zone (then browser language). The number is sent as E.164 (+31612345678) so the
    wa.me link in the lead notification always works. */
-const WA_ROUTES=["A","B","D"];   // routes that see the WhatsApp field; remove "D" to show it to qualified leads only
+const WA_ROUTES=HOBBY_TO_CALL?["A","B","H"]:["A","B"];   // the WhatsApp field on the call routes (30 Oct 2026)
 function flagIso(f){const a=Array.from(f);if(a.length!==2)return "";return a.map(c=>String.fromCodePoint(c.codePointAt(0)-0x1F1E6+65)).join("");}
 const TZ_ISO={"Europe/London":"GB","Europe/Dublin":"IE","Europe/Amsterdam":"NL","Europe/Brussels":"BE","Europe/Berlin":"DE","Europe/Paris":"FR","Europe/Zurich":"CH","Europe/Vienna":"AT","Europe/Madrid":"ES","Europe/Rome":"IT","Europe/Lisbon":"PT","Europe/Stockholm":"SE","Europe/Oslo":"NO","Europe/Copenhagen":"DK","Europe/Helsinki":"FI","Europe/Warsaw":"PL","Europe/Prague":"CZ","Europe/Athens":"GR",
   "Asia/Kolkata":"IN","Asia/Calcutta":"IN","Asia/Dubai":"AE","Asia/Singapore":"SG","Asia/Kuala_Lumpur":"MY","Asia/Karachi":"PK","Asia/Dhaka":"BD","Asia/Kathmandu":"NP","Asia/Colombo":"LK","Pacific/Auckland":"NZ","Pacific/Fiji":"FJ","Africa/Johannesburg":"ZA","Indian/Mauritius":"MU","Africa/Nairobi":"KE",
@@ -1074,11 +1082,12 @@ function submit(){
   err.textContent=""; onEmailStep=false; const btn=document.getElementById("submit"); btn.disabled=true; btn.textContent="One moment…";
   const r=computeRoute(answers); const utm=getUTM();
   const payload={event_id:eventId,first_name:fn,email:em,whatsapp:cWa?wa:"",email_consent:cEmail,consent_region:consentRegion,whatsapp_consent:cWa&&!!wa,
-    answers:answers,route:r.route,qualified:r.qualified,advanced:r.advanced,
+    answers:answers,route:r.route,qualified:r.qualified,advanced:r.advanced,hobby:!!r.hobby,
     utm_source:utm.utm_source,utm_campaign:utm.utm_campaign,utm_content:utm.utm_content,utm_medium:utm.utm_medium,
     fbp:getCookie("_fbp"),fbc:getCookie("_fbc"),page_url:location.href,
     marketing_consent:(window.heConsent?!!window.heConsent.marketing:true)};
-  fire("Lead"); if(r.qualified)fire("QualifiedLead");
+  // 28 Oct 2026: QualifiedLead only for ambitious leads (the call), HobbyLead for the annual route.
+  fire("Lead"); if(r.qualified)fire("QualifiedLead"); else if(r.hobby)fire("HobbyLead");
   track("submit",{route:r.route,qualified:r.qualified,ms:Math.round(performance.now()-emailShownAt)});
   postLead(payload).then(res=>{
     // The Function answers {ok:false, reason:"invalid_email"} when Systeme refused the address.
@@ -1103,8 +1112,8 @@ function postLead(p){
     .catch(e=>{console.error("Lead post failed (continuing):",e);return {};});
 }
 function redirect(r,fn){
-  const base=CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D;
-  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route,harmonium:first(answers.harmonium)});
+  const base=(r.route==="H"&&HOBBY_TO_CALL)?CONFIG.RESULT_URLS.B:(CONFIG.RESULT_URLS[r.route]||CONFIG.RESULT_URLS.D);
+  const q=new URLSearchParams({fn:fn,role:first(answers.place),frustration:first(answers.blocker),goal:first(answers.sixmonths),route:r.route,harmonium:first(answers.harmonium),intent:first(answers.invest),l:eventId,t:String(Date.now())});
   location.href=base+(base.includes("?")?"&":"?")+q.toString();
 }
 function swap(node){stage.innerHTML="";stage.appendChild(node);window.scrollTo({top:0,behavior:"instant"});}
