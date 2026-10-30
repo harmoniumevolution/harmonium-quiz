@@ -7,12 +7,10 @@
 // to the Conversions API with the same event_id as the browser event.
 // Tags to create in Systeme: route-h, route-h-results-only, hobby.
 // SQL once: alter table quiz_leads add column if not exists hobby boolean;
-// 30 Oct 2026 (evening): question 10 states the size of the investment (no price) and routes on the
-// answer: "program" -> H (the page, beginner or not, tag hobby + HobbyLead), "mentorship" -> B (call,
-// QualifiedLead), "explore" and "budget" -> D. A "budget" answer also sends budget:true; this file then
-// adds the tag "d-budget" (with email consent) so the D mails can show the cheap path. Route A is gone.
-// Tag to create in Systeme: d-budget.
-// SQL once: alter table quiz_leads add column if not exists budget boolean;
+// 30 Oct 2026 (evening, final): question 10 states the size of the investment (no price, comparisons)
+// and each answer says whether paying is on the table. unsure -> D, properly -> A (call, QualifiedLead),
+// hobby -> H (hobby page once live, proof page until then; tag hobby + HobbyLead), serious -> B (call,
+// QualifiedLead). The "d-budget" tag below is dormant: no answer sends budget:true any more.
 // Secrets live in Netlify environment variables, never in the repo:
 //   SYSTEME_API_KEY        (Systeme public API key)
 //   SUPABASE_SERVICE_KEY   (Supabase service_role key)
@@ -67,16 +65,16 @@ const LABELS = {
   },
   harmonium: { yes: "Yes", onway: "On its way", notyet: "Not yet" },
   invest: {
-    // 30 Oct 2026 (evening) question: the investment size is in the question, these are the answers
+    // 30 Oct 2026 (evening, final) question: the investment size (a good harmonium, months of lessons) is in the question
+    unsure: "Getting started, not sure they can learn it or stay motivated, doesn't want to pay for lessons now",
+    properly: "Beginner, wants to learn it the right way with quality lessons, ready for an investment the size of a harmonium",
+    hobby: "Plays already, hobby, no big plans, wants to get better at own pace, not sure about paying",
+    serious: "Plays already, strong desire to play really well, also with others, ready to invest in a program or mentorship",
+    // 30 Oct 2026 (one hour, evening) question
     explore: "Still exploring, free videos for now",
-    program: "Ready for an investment the size of a good harmonium or a few months of lessons, wants to learn through the program at own pace",
-    mentorship: "Wants more than the program (play for others, maybe teach), open to personal mentorship",
+    program: "Ready for an investment the size of a good harmonium, wants to learn through the program at own pace",
+    mentorship: "Wants more than the program, open to personal mentorship",
     budget: "Would love to, but an investment like that isn't realistic right now",
-    // 30 Oct 2026 (morning) question
-    unsure: "Getting started, not sure they can learn it or stay motivated",
-    properly: "Beginner, wants to learn it the right way with quality guidance, ready to invest",
-    hobby: "Plays already, hobby, no big plans, wants to get better at own pace",
-    serious: "Plays already, wants to play well also with others, ready to invest",
     // older questions
     ambitious: "Ambitious (28-30 Oct question)",
     ready: "Ready to invest (old question)",
@@ -195,7 +193,7 @@ async function sendLeadNotification(p, geo) {
     ["Email", p.email || ""],
     ["WhatsApp", p.whatsapp ? p.whatsapp + (dial ? " (" + dial + ")" : "") : "not left"],
     ["Country", (where || "unknown") + (geo.timezone ? " · " + geo.timezone : "")],
-    ["Route", routeTxt + (p.qualified ? ", qualified (mentorship answer, call)" : p.hobby ? ", program answer (the page; on a call: offer the year, not lifetime)" : p.budget ? ", budget answer (proof route, cheap path in the mails, no call)" : ", exploring (proof route, no call)")],
+    ["Route", routeTxt + (p.qualified ? ", qualified (call)" : p.hobby ? ", hobby, not sure about paying (proof page now, hobby sales page later, no call)" : ", getting started, doesn't want to pay (proof route, no call)")],
     ["Plays", label("place", a.place)],
     ["Level", label("level", a.level)],
     ["Situation", label("blocker", a.blocker)],
