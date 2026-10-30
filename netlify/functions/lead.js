@@ -1,6 +1,12 @@
 // netlify/functions/lead.js
 // Receives the quiz payload, stores it in Supabase, then creates or updates
 // the contact in Systeme and sets custom fields and the route tag.
+// 28 Oct 2026: route H (hobby, the One Year All Access offer). The quiz sends hobby:true,
+// route "H", qualified false. This file then adds the tag "hobby" next to "route-h" /
+// "route-h-results-only", stores hobby in quiz_leads, and sends HobbyLead (not QualifiedLead)
+// to the Conversions API with the same event_id as the browser event.
+// Tags to create in Systeme: route-h, route-h-results-only, hobby.
+// SQL once: alter table quiz_leads add column if not exists hobby boolean;
 // Secrets live in Netlify environment variables, never in the repo:
 //   SYSTEME_API_KEY        (Systeme public API key)
 //   SUPABASE_SERVICE_KEY   (Supabase service_role key)
@@ -54,6 +60,15 @@ const LABELS = {
     "5plus": "5+ hours per week",
   },
   harmonium: { yes: "Yes", onway: "On its way", notyet: "Not yet" },
+  invest: {
+    unsure: "Getting started, not sure they can learn it",
+    properly: "Getting started, wants to learn it properly from day one",
+    hobby: "Plays already, hobby, no big plans, wants to get better at own pace",
+    serious: "Plays already, serious, also for others, ready to invest",
+    ambitious: "Ambitious (28-30 Oct question)",
+    ready: "Ready to invest (old question)",
+    free: "Free tips for now (old question)",
+  },
 };
 
 // How the level reads inside a sentence of the WhatsApp message.
@@ -169,18 +184,19 @@ async function sendLeadNotification(p, geo) {
     ["Email", p.email || ""],
     ["WhatsApp", p.whatsapp ? p.whatsapp + (dial ? " (" + dial + ")" : "") : "not left"],
     ["Country", (where || "unknown") + (geo.timezone ? " · " + geo.timezone : "")],
-    ["Route", routeTxt + (p.qualified ? ", qualified" : ", not qualified")],
+    ["Route", routeTxt + (p.qualified ? ", qualified (call)" : p.hobby ? ", hobby (offer the year, not lifetime)" : ", starting, not sure (proof route, no call)")],
     ["Plays", label("place", a.place)],
     ["Level", label("level", a.level)],
     ["Situation", label("blocker", a.blocker)],
     ["Goal (6 months)", label("sixmonths", a.sixmonths)],
     ["Practice time", label("time", a.time)],
     ["Harmonium", label("harmonium", a.harmonium)],
+    ["Commitment", label("invest", a.invest)],
     ["Email consent", p.email_consent === true ? "yes" : "no"],
     ["Ad (utm_content)", p.utm_content || ""],
   ];
   // Any other quiz answers (questions without a label map), shown raw.
-  const known = new Set(["place", "level", "blocker", "sixmonths", "time", "harmonium"]);
+  const known = new Set(["place", "level", "blocker", "sixmonths", "time", "harmonium", "invest"]);
   for (const k of Object.keys(a)) {
     if (!known.has(k)) rows.push([k, Array.isArray(a[k]) ? a[k].join(", ") : String(a[k] ?? "")]);
   }
@@ -307,6 +323,8 @@ exports.handler = async (event, context) => {
   // tag "d-experienced" and, optionally, a heads-up to Kenny via Zapier.
   // Only with email consent, because the follow-up sends email. No Meta event:
   // the QualifiedLead signal stays untouched.
+  // 30 Oct 2026: route D is now "getting started, not sure"; an experienced player there is a
+  // contradiction worth a look, same as before.
   const expD =
     String(p.route || "").toUpperCase() === "D" &&
     ["1to5", "over5"].includes((p.answers || {}).level) &&
@@ -330,17 +348,17 @@ exports.handler = async (event, context) => {
       body: JSON.stringify(row),
     });
   try {
-    let r = await insertLead(p);
-    if (!r.ok) {
+    // A column the table does not have yet (country in Oct, hobby since 28 Oct) must never lose a
+    // lead: PostgREST names the column in its error, so drop that key and retry, up to three times.
+    let row = Object.assign({}, p);
+    let r = await insertLead(row);
+    for (let i = 0; i < 3 && !r.ok; i++) {
       const t = await r.text();
-      if (r.status === 400 && p.country && /country/i.test(t)) {
-        console.error("quiz_leads has no country column yet, retrying without it. Run: alter table quiz_leads add column country text;");
-        const { country, ...rest } = p; // eslint-disable-line no-unused-vars
-        r = await insertLead(rest);
-        if (!r.ok) console.error("Supabase insert failed:", r.status, await r.text());
-      } else {
-        console.error("Supabase insert failed:", r.status, t);
-      }
+      const m = r.status === 400 && /'([A-Za-z0-9_]+)' column/.exec(t);
+      if (!m || !(m[1] in row)) { console.error("Supabase insert failed:", r.status, t); break; }
+      console.error("quiz_leads has no '" + m[1] + "' column yet, retrying without it. Run: alter table quiz_leads add column if not exists " + m[1] + " " + (typeof row[m[1]] === "boolean" ? "boolean" : "text") + ";");
+      delete row[m[1]];
+      r = await insertLead(row);
     }
     supabaseOk = r.ok;
     if (r.ok) console.log("Supabase insert:", r.status, "route", p.route, "qualified", !!p.qualified, "consent", p.email_consent === true, "country", p.country || "?");
@@ -419,6 +437,7 @@ exports.handler = async (event, context) => {
       const tags = [emailOk ? "route-" + route : "route-" + route + "-results-only"];
       if (p.qualified) tags.push("qualified");
       if (p.advanced) tags.push("advanced");
+      if (p.hobby) tags.push("hobby");                // route H (28 Oct 2026)
       if (emailOk) tags.push("email-consent");
       if (expD) tags.push("d-experienced");
       const tagMap = await getTagMap();
@@ -527,6 +546,7 @@ exports.handler = async (event, context) => {
       };
       const events = [Object.assign({ event_name: "Lead" }, base)];
       if (p.qualified) events.push(Object.assign({ event_name: "QualifiedLead" }, base));
+      else if (p.hobby) events.push(Object.assign({ event_name: "HobbyLead" }, base)); // route H, same event_id as the browser event
       // While testing, set META_TEST_EVENT_CODE in Netlify env to route these to Test Events.
       // Leave it empty/unset in production.
       const body = { data: events };
@@ -558,6 +578,7 @@ exports.handler = async (event, context) => {
       capi: capiOk,
       consent: marketingOk,
       d_experienced: expD,
+      hobby: !!p.hobby,
       hook: hookOk,
       notify: notifyOk,
     }),
