@@ -120,20 +120,18 @@ function goalPhrase(v) {
   return l.charAt(0).toLowerCase() + l.slice(1);
 }
 
-// The WhatsApp message Kenny sends by hand. Edit the wording here; name, level and goal
-// are filled in per lead.
+// The WhatsApp message Kenny sends by hand. Edit the wording here; the first name is filled in
+// per lead. 30 Oct 2026: shorter and more conversational (Kenny's wording), opens a chat instead of
+// pushing the call. LEVEL_PHRASE and goalPhrase stay available for a personal variant later.
 function whatsappMessage(p) {
-  const a = p.answers || {};
   const name = (p.first_name || "").trim() || "there";
-  const level = LEVEL_PHRASE[a.level] || "you've started your harmonium journey";
-  const goal = goalPhrase(a.sixmonths);
   return (
-    "Hi " + name + ", hope you are doing well. This is Kenny from Harmonium Evolution 🙏 " +
-    "I saw your quiz result: " + level + ", and you'd love to " + goal + ". " +
-    "Did you get a chance to watch the masterclass?\n\n" +
-    "If you want, we can look at your playing on a short call. It's free and without obligation, " +
-    "and it would be nice to see together how we can develop your harmonium playing. " +
-    "Book your call with this link: " + CALL_LINK
+    "Hi " + name + " 🙏 This is Kenny from Harmonium Evolution. How are you doing? " +
+    "Thanks for taking the quiz. Do you already play some harmonium, or are you just starting? " +
+    "And did you get a chance to watch the harmonium masterclass?\n\n" +
+    "Happy to talk and see how I can help you. If you like, we can chat here, or you can schedule " +
+    "a call with me in the next few days through the form on this page: " + CALL_LINK + "\n\n" +
+    "Best wishes,\nKenny"
   );
 }
 
