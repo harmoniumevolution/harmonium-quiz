@@ -537,11 +537,13 @@ const CONFIG = {
   GETTING_STARTED_URL: "https://harmoniumevolution.com/getting-started",
   DECO_IMG: "https://d1yei2z3i6k35z.cloudfront.net/17100462/69fdba343a89e9.50572169_fed7f3-abe6-483b-c443-2675705ee5_be42f62a-8a5f-4a19-afa6-811f7277a9fa.jpg",
   /* 30 Oct 2026, route D (getting started, not sure): two real lessons, each stops after 2 minutes */
+  /* stop = seconds after which the lesson pauses and the overlay appears; 0 = play the whole lesson.
+     Lesson 1 plays in full on this page: the person just told us they're not sure they can learn
+     it, so this is the lesson that should let them succeed. Lesson 2 is the teaser. */
   TRIAL_LESSONS: [
-    { id:"508981309", title:"Your first chords", bundle:"Chord Freedom", note:"Simple on purpose: this is where everyone starts." },
-    { id:"699502921", title:"Raghupati Raghav, melody and chords together", bundle:"Melody Meets Chords", note:"This is where the program takes you." }
+    { id:"508981309", title:"Your first chords", bundle:"Chord Freedom", stop:0,   note:"The full lesson, from the program. Play along, slowly." },
+    { id:"699502921", title:"Raghupati Raghav, melody and chords together", bundle:"Melody Meets Chords", stop:300, note:"The first five minutes of a 24-minute lesson. This is where the program takes you." }
   ],
-  TRIAL_STOP_SECONDS: 120,
   WHATSAPP_NUMBER: "31623501463",
   WHATSAPP_TEXT: "Hi Kenny, can I get more information about Harmonium Evolution?"
 };
@@ -605,9 +607,9 @@ const CONTENT = {
     call:false,
     recTop:`<div class="block"><p class="list-intro"><b>Perhaps you have some doubts:</b></p><ul class="familiar"><li>Am I musical enough? I never learned an instrument.</li><li>YouTube is confusing, where do I even start?</li><li>Will I like it, and will I keep it up?</li></ul></div>`+
       `<p class="lead soft"><b>You don't need special music talent.</b> Almost none of my 850 students felt "musical" at the start. What they needed was the right first step, and someone who shows it slowly.</p>`+ MIDHR + THREE,
-    steps:[["Step 1:","Watch the Harmonium Freedom masterclass 👇"],["Step 2:","Try two real lessons from the program, two minutes each, and feel for yourself"],["Step 3:","Check your inbox: over the next days I'll send you your first small wins, and your next step"]],
+    steps:[["Step 1:","Watch the Harmonium Freedom masterclass 👇"],["Step 2:","Play along with a real lesson from the program, and feel for yourself"],["Step 3:","Check your inbox: over the next days I'll send you your first small wins, and your next step"]],
     bodyD:`<p class="lead"><b>Let's find out together.</b></p>`+
-      `<p class="lead soft">Below are two real lessons from inside the program. The first is where everyone starts. The second is where it goes. Two minutes each, no sign-up, nothing to buy.</p>`+
+      `<p class="lead soft">Below are two real lessons from inside the program. The first is where everyone starts, and you get it in full: play along, slowly, and see what happens. The second shows where it goes. No sign-up, nothing to buy.</p>`+
       `<div id="trialLessons" class="trials"></div>`+
       `<p class="lead soft" style="margin-top:22px"><b>What happens next?</b> Nothing you need to do. Your masterclass and chord chart are here, and in the coming days I'll send you a few short emails with your first small wins. If you feel "I can do this", I'll show you the simplest way to start, for less than a music lesson. If not, you keep the chord chart and the lessons, with my blessing.</p>`
   }
@@ -687,7 +689,7 @@ if(c.call){
   steps.innerHTML = renderSteps(c.steps); steps.hidden = false;
   body.innerHTML = c.bodyD;
   document.getElementById("heMcCta").innerHTML = "";
-  stickyCta.innerHTML = `<a href="#trialLessons" class="btn">TRY A REAL LESSON, 2 MINUTES →</a>`;
+  stickyCta.innerHTML = `<a href="#trialLessons" class="btn">TRY A REAL LESSON →</a>`;
   finalcta.innerHTML =
     `<p class="lead-in">Your next step arrives by email in the coming days.</p>` +
     `<p class="lead soft" style="max-width:46ch;margin:0 auto">Until then: play the two lessons again, open the chord chart, and put the harmonium somewhere you see it every day.</p>` +
@@ -698,12 +700,12 @@ if(c.call){
     const d=document.createElement("div"); d.className="trial";
     d.innerHTML=`<p class="trial-h">Lesson ${i+1}: ${L.title}</p>`+
       `<div class="trial-frame"><iframe src="https://player.vimeo.com/video/${L.id}?dnt=1&title=0&byline=0&portrait=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${L.title}"></iframe>`+
-      `<div class="trial-stop"><div><p class="trial-stop-h">That's the first two minutes.</p><p>The full lesson, and everything around it, is inside <b>${L.bundle}</b>. Your next step comes by email.</p></div></div></div>`+
+      `<div class="trial-stop"><div><p class="trial-stop-h">That's the first ${Math.round(L.stop/60)} minutes.</p><p>The full lesson, and everything around it, is inside <b>${L.bundle}</b>. Your next step comes by email.</p></div></div></div>`+
       `<p class="trial-note">${L.note}</p>`;
     box.appendChild(d);
     try{
       const pl=new Vimeo.Player(d.querySelector("iframe")); let stopped=false;
-      pl.on("timeupdate",t=>{ if(!stopped&&t.seconds>=CONFIG.TRIAL_STOP_SECONDS){ stopped=true; pl.pause(); d.querySelector(".trial-stop").classList.add("on"); } });
+      if(L.stop>0) pl.on("timeupdate",t=>{ if(!stopped&&t.seconds>=L.stop){ stopped=true; pl.pause(); d.querySelector(".trial-stop").classList.add("on"); } });
     }catch(e){}
   });
 }
@@ -729,7 +731,7 @@ finalcta.hidden = false;
     cta.href = "#book"; cta.innerHTML = "Click to book your free call &rarr;"; cta.classList.add("js-book");
     endH.textContent = "Ready for your next step?";
   }else{
-    cta.href = "#trialLessons"; cta.innerHTML = "Now try a real lesson, 2 minutes &rarr;";
+    cta.href = "#trialLessons"; cta.innerHTML = "Now try a real lesson &rarr;";
     endH.textContent = "Did that make sense?";
   }
 
